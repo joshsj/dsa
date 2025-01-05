@@ -140,15 +140,6 @@ test "isEmpty() should be false when no items added" {
     try testing.expect(!list.isEmpty());
 }
 
-test "addFirst() should increment len" {
-    var list = create();
-    defer list.deinit();
-
-    try list.addFirst(10);
-
-    try testing.expectEqual(1, list.len);
-}
-
 test "addFirst() should create the head and tail when empty" {
     var list = create();
     defer list.deinit();
@@ -161,6 +152,8 @@ test "addFirst() should create the head and tail when empty" {
     try testing.expectEqual(10, list.head.?.value);
     try testing.expectEqual(null, list.head.?.next);
     try testing.expectEqual(null, list.head.?.prev);
+
+    try testing.expectEqual(1, list.len);
 }
 
 test "addFirst() should create a new head only when not empty" {
@@ -180,6 +173,8 @@ test "addFirst() should create a new head only when not empty" {
     try testing.expectEqual(list.head, list.tail.?.prev);
     try testing.expectEqual(10, list.tail.?.value);
     try testing.expectEqual(null, list.tail.?.next);
+
+    try testing.expectEqual(2, list.len);
 }
 
 test "removeFirst() should return null when empty" {
@@ -189,24 +184,29 @@ test "removeFirst() should return null when empty" {
     try testing.expectEqual(null, list.removeFirst());
 }
 
-test "removeFirst() should return the value at the head when not empty" {
+test "removeFirst() should remove the head and tail when no items remain" {
     var list = create();
     defer list.deinit();
 
     try list.addFirst(10);
-    try list.addFirst(11);
 
-    try testing.expectEqual(11, list.removeFirst());
+    try testing.expectEqual(10, list.removeFirst());
+
+    try testing.expectEqual(null, list.head);
+    try testing.expectEqual(null, list.tail);
+
+    try testing.expectEqual(0, list.len);
 }
 
-test "removeFirst() should remove the head only when items remain" {
+test "removeFirst() should move the head when items remain" {
     var list = create();
     defer list.deinit();
 
     try list.addFirst(10);
     try list.addFirst(11);
     try list.addFirst(12);
-    _ = list.removeFirst();
+    
+    try testing.expectEqual(12, list.removeFirst());
 
     try testing.expect(list.head != null);
     try testing.expect(list.tail != null);
@@ -218,44 +218,8 @@ test "removeFirst() should remove the head only when items remain" {
     try testing.expectEqual(list.head, list.tail.?.prev);
     try testing.expectEqual(10, list.tail.?.value);
     try testing.expectEqual(null, list.tail.?.next);
-}
 
-test "removeFirst() should remove the head and tail when emptied" {
-    var list = create();
-    defer list.deinit();
-
-    try list.addFirst(10);
-    try list.addFirst(11);
-    _ = list.removeFirst();
-    _ = list.removeFirst();
-
-    try testing.expectEqual(null, list.head);
-    try testing.expectEqual(null, list.tail);
-}
-
-test "removeFirst() should decrement len when not empty" {
-    var list = create();
-    defer list.deinit();
-
-    try list.addFirst(10);
-    try list.addFirst(11);
-
-    _ = list.removeFirst();
-
-    try testing.expectEqual(1, list.len);
-}
-
-test "clear() should remove all items" {
-    var list = create();
-    defer list.deinit();
-
-    try list.addFirst(10);
-    try list.addFirst(11);
-
-    list.clear();
-
-    try testing.expectEqual(null, list.head);
-    try testing.expectEqual(null, list.tail);
+    try testing.expectEqual(2, list.len);
 }
 
 test "getAt() should return the value of the node at the specified index" {
@@ -275,3 +239,17 @@ test "getAt() should return null when the node does not exist" {
 
     try testing.expectEqual(null, list.getAt(0));
 }
+
+test "clear() should remove all items" {
+    var list = create();
+    defer list.deinit();
+
+    try list.addFirst(10);
+    try list.addFirst(11);
+
+    list.clear();
+
+    try testing.expectEqual(null, list.head);
+    try testing.expectEqual(null, list.tail);
+}
+
