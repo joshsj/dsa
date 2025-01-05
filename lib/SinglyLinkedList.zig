@@ -38,6 +38,21 @@ pub fn SinglyLinkedList(comptime T: type) type {
             self.len += 1;
         }
 
+        pub fn addLast(self: *Self, value: T) Allocator.Error!void {
+            if (self.len == 0) {
+                return self.addFirst(value);
+            }
+
+            const new = try self.allocator.create(Node);
+
+            new.value = value;
+            new.next = null;
+
+            const tail = self.getNodeAt(self.len - 1);
+            
+            tail.?.next = new;
+        }
+
         /// O(1)
         pub fn removeFirst(self: *Self) ?T {
             if (self.head) |node| {
@@ -50,6 +65,51 @@ pub fn SinglyLinkedList(comptime T: type) type {
             } else {
                 return null;
             }
+        }
+
+        pub fn insertAt(self: *Self, index: usize, value: T) Allocator.Error!void {
+            if (index > self.len) {
+                // TODO error
+                return;
+            }
+
+            if (index == self.len) {
+                return self.addLast(value);
+            }
+
+            if (index == 0) {
+                return self.addFirst(value);
+            }
+
+            const prev = self.getNodeAt(index - 1) orelse unreachable;
+            const new = try self.allocator.create(Node);
+
+            new.value = value;
+            new.next = prev.next;
+
+            prev.next = new;
+
+            self.len += 1;
+        }
+
+        /// O(n)
+        pub fn getAt(self: Self, index: usize) ?T {
+            // Cool stuff
+            return if (self.getNodeAt(index)) |node| node.value else null;
+        }
+
+        fn getNodeAt(self: Self, index: usize) ?*Node {
+            if (index >= self.len) {
+                return null;
+            }
+
+            var curr = self.head orelse unreachable;
+
+            for (0..index) |_| {
+                curr = curr.next orelse unreachable;
+            }
+
+            return curr;
         }
 
         /// O(n)
@@ -169,3 +229,46 @@ test "clear() should remove all items" {
     try testing.expectEqual(null, list.head);
 }
 
+test "getAt() should return the value of the node at the specified index" {
+    var list = create();
+    defer list.deinit();
+
+    try list.addFirst(10);
+    try list.addFirst(11);
+
+    try testing.expectEqual(11, list.getAt(0));
+    try testing.expectEqual(10, list.getAt(1));
+}
+
+test "getAt() should return null when the node does not exist" {
+    var list = create();
+    defer list.deinit();
+
+    try testing.expectEqual(null, list.getAt(0));
+}
+
+test "insertAt() should increment len" {
+    var list = create();
+    defer list.deinit();
+
+    try list.addFirst(10);
+    try list.addFirst(12);
+    try list.addFirst(13);
+
+    try list.insertAt(1, 11); 
+
+    try testing.expectEqual(4, list.len);
+}
+
+test "insertAt() should insert in the middle of the nodes" {
+    var list = create();
+    defer list.deinit();
+
+    try list.addFirst(10);
+    try list.addFirst(12);
+    try list.addFirst(13);
+
+    try list.insertAt(1, 11); 
+
+    try testing.expectEqual(11, list.head.?.next.?.value);
+}

@@ -70,6 +70,26 @@ pub fn DoublyLinkedList(comptime T: type) type {
         }
 
         /// O(n)
+        pub fn getAt(self: Self, index: usize) ?T {
+            // Cool stuff
+            return if (self.getNodeAt(index)) |node| node.value else null;
+        }
+
+        fn getNodeAt(self: Self, index: usize) ?*Node {
+            if (index >= self.len) {
+                return null;
+            }
+
+            var curr = self.head orelse unreachable;
+
+            for (0..index) |_| {
+                curr = curr.next orelse unreachable;
+            }
+
+            return curr;
+        }
+
+        /// O(n)
         pub fn clear(self: *Self) void {
             while (!self.isEmpty()) {
                 _ = self.removeFirst();
@@ -238,3 +258,20 @@ test "clear() should remove all items" {
     try testing.expectEqual(null, list.tail);
 }
 
+test "getAt() should return the value of the node at the specified index" {
+    var list = create();
+    defer list.deinit();
+
+    try list.addFirst(10);
+    try list.addFirst(11);
+
+    try testing.expectEqual(11, list.getAt(0));
+    try testing.expectEqual(10, list.getAt(1));
+}
+
+test "getAt() should return null when the node does not exist" {
+    var list = create();
+    defer list.deinit();
+
+    try testing.expectEqual(null, list.getAt(0));
+}
