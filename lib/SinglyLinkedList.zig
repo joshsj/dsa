@@ -38,22 +38,6 @@ pub fn SinglyLinkedList(comptime T: type) type {
             self.len += 1;
         }
 
-        /// O(n)
-        pub fn addLast(self: *Self, value: T) Allocator.Error!void {
-            if (self.len == 0) {
-                return self.addFirst(value);
-            }
-
-            const new = try self.allocator.create(Node);
-
-            new.value = value;
-            new.next = null;
-
-            const tail = self.getNodeAt(self.len - 1);
-            
-            tail.?.next = new;
-        }
-
         /// O(1)
         pub fn removeFirst(self: *Self) ?T {
             if (self.head) |node| {
@@ -66,32 +50,6 @@ pub fn SinglyLinkedList(comptime T: type) type {
             } else {
                 return null;
             }
-        }
-
-        /// O(n)
-        pub fn insertAt(self: *Self, index: usize, value: T) Allocator.Error!void {
-            if (index > self.len) {
-                // TODO error
-                return;
-            }
-
-            if (index == self.len) {
-                return self.addLast(value);
-            }
-
-            if (index == 0) {
-                return self.addFirst(value);
-            }
-
-            const prev = self.getNodeAt(index - 1) orelse unreachable;
-            const new = try self.allocator.create(Node);
-
-            new.value = value;
-            new.next = prev.next;
-
-            prev.next = new;
-
-            self.len += 1;
         }
 
         /// O(n)
@@ -116,7 +74,7 @@ pub fn SinglyLinkedList(comptime T: type) type {
 
         /// O(n)
         pub fn clear(self: *Self) void {
-            while (!self.isEmpty()) {
+            while (self.len != 0) {
                 _ = self.removeFirst();
             }
         }
@@ -159,16 +117,7 @@ test "isEmpty() should be false when no items added" {
     try testing.expect(!list.isEmpty());
 }
 
-test "addFirst() should increment len" {
-    var list = create();
-    defer list.deinit();
-
-    try list.addFirst(10);
-
-    try testing.expectEqual(1, list.len);
-}
-
-test "addFirst() should insert at the head when empty" {
+test "addFirst() should create the head when empty" {
     var list = create();
     defer list.deinit();
 
@@ -176,9 +125,11 @@ test "addFirst() should insert at the head when empty" {
 
     try testing.expectEqual(10, list.head.?.value);
     try testing.expectEqual(null, list.head.?.next);
+
+    try testing.expectEqual(1, list.len);
 }
 
-test "addFirst() should insert at the head when not empty" {
+test "addFirst() should create a new head when not empty" {
     var list = create();
     defer list.deinit();
 
@@ -188,6 +139,8 @@ test "addFirst() should insert at the head when not empty" {
     try testing.expectEqual(11, list.head.?.value);
     try testing.expectEqual(10, list.head.?.next.?.value);
     try testing.expectEqual(null, list.head.?.next.?.next);
+
+    try testing.expectEqual(2, list.len);
 }
 
 test "removeFirst() should return null when empty" {
@@ -197,7 +150,20 @@ test "removeFirst() should return null when empty" {
     try testing.expectEqual(null, list.removeFirst());
 }
 
-test "removeFirst() should return the value at the head when not empty" {
+test "removeFirst() should remove the head when no items remain" {
+    var list = create();
+    defer list.deinit();
+
+    try list.addFirst(10);
+
+    try testing.expectEqual(10, list.removeFirst());
+
+    try testing.expectEqual(null, list.head);
+
+    try testing.expectEqual(0, list.len);
+}
+
+test "removeFirst() should move the head when items remain" {
     var list = create();
     defer list.deinit();
 
@@ -205,30 +171,11 @@ test "removeFirst() should return the value at the head when not empty" {
     try list.addFirst(11);
 
     try testing.expectEqual(11, list.removeFirst());
-}
 
-test "removeFirst() should decrement len when not empty" {
-    var list = create();
-    defer list.deinit();
-
-    try list.addFirst(10);
-    try list.addFirst(11);
-
-    _ = list.removeFirst();
+    try testing.expectEqual(10, list.head.?.value);
+    try testing.expectEqual(null, list.head.?.next);
 
     try testing.expectEqual(1, list.len);
-}
-
-test "clear() should remove all items" {
-    var list = create();
-    defer list.deinit();
-
-    try list.addFirst(10);
-    try list.addFirst(11);
-
-    list.clear();
-
-    try testing.expectEqual(null, list.head);
 }
 
 test "getAt() should return the value of the node at the specified index" {
@@ -249,28 +196,15 @@ test "getAt() should return null when the node does not exist" {
     try testing.expectEqual(null, list.getAt(0));
 }
 
-test "insertAt() should increment len" {
+test "clear() should remove all items" {
     var list = create();
     defer list.deinit();
 
     try list.addFirst(10);
-    try list.addFirst(12);
-    try list.addFirst(13);
+    try list.addFirst(11);
 
-    try list.insertAt(1, 11); 
+    list.clear();
 
-    try testing.expectEqual(4, list.len);
+    try testing.expectEqual(null, list.head);
 }
 
-test "insertAt() should insert in the middle of the nodes" {
-    var list = create();
-    defer list.deinit();
-
-    try list.addFirst(10);
-    try list.addFirst(12);
-    try list.addFirst(13);
-
-    try list.insertAt(1, 11); 
-
-    try testing.expectEqual(11, list.head.?.next.?.value);
-}
