@@ -38,6 +38,7 @@ pub fn SinglyLinkedList(comptime T: type) type {
             self.len += 1;
         }
 
+        /// O(n)
         pub fn addLast(self: *Self, value: T) Allocator.Error!void {
             if (self.len == 0) {
                 return self.addFirst(value);
@@ -67,6 +68,7 @@ pub fn SinglyLinkedList(comptime T: type) type {
             }
         }
 
+        /// O(n)
         pub fn insertAt(self: *Self, index: usize, value: T) Allocator.Error!void {
             if (index > self.len) {
                 // TODO error
