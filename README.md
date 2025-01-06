@@ -2,9 +2,17 @@
 
 My notes and implementations.
 
-## Install
+## Commands
+
+### Install
 
 ```sh
 winget install zig.zig
+```
+
+### Run tests
+
+```sh
+zig build test --summary all
 ```
 

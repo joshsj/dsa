@@ -131,6 +131,31 @@ pub fn DoublyLinkedList(comptime T: type) type {
         }
 
         /// O(n)
+        pub fn removeAt(self: *Self, index: usize) ?T {
+            if (index >= self.len) {
+                return null;
+            }
+
+            if (index == 0) {
+                return self.removeFirst();
+            }
+
+            if (index == self.len - 1) {
+                return self.removeLast();
+            }
+
+            const node = self.getNodeAt(index).?;
+
+            node.prev.?.next = node.next;
+            node.next.?.prev = node.prev;
+
+            self.len -= 1;
+
+            defer self.allocator.destroy(node);
+            return node.value;
+        }
+
+        /// O(n)
         pub fn getAt(self: Self, index: usize) ?T {
             // Cool stuff
             return if (self.getNodeAt(index)) |node| node.value else null;
@@ -474,6 +499,119 @@ test "removeLast() should move the tail when items remain" {
 
     try testing.expectEqual(2, list.len);
 }
+
+test "removeAt() should return null when index is invalid" {
+    var list = create();
+    defer list.deinit();
+
+    try testing.expectEqual(null, list.removeAt(0));
+}
+
+test "removeAt(0) should remove the head and tail when no items remain" {
+    var list = create();
+    defer list.deinit();
+
+    try list.addFirst(10);
+
+    try testing.expectEqual(10, list.removeAt(0));
+
+    try testing.expectEqual(null, list.head);
+    try testing.expectEqual(null, list.tail);
+
+    try testing.expectEqual(0, list.len);
+}
+
+test "removeAt(0) should move the head when items remain" {
+    var list = create();
+    defer list.deinit();
+
+    try list.addFirst(10);
+    try list.addFirst(11);
+    try list.addFirst(12);
+    
+    try testing.expectEqual(12, list.removeAt(0));
+
+    try testing.expect(list.head != null);
+    try testing.expect(list.tail != null);
+
+    try testing.expectEqual(null, list.head.?.prev);
+    try testing.expectEqual(11, list.head.?.value);
+    try testing.expectEqual(list.tail, list.head.?.next);
+
+    try testing.expectEqual(list.head, list.tail.?.prev);
+    try testing.expectEqual(10, list.tail.?.value);
+    try testing.expectEqual(null, list.tail.?.next);
+
+    try testing.expectEqual(2, list.len);
+}
+
+test "removeAt() should remove the head and tail when no items remain" {
+    var list = create();
+    defer list.deinit();
+
+    try list.addFirst(10);
+
+    try testing.expectEqual(10, list.removeAt(0));
+
+    try testing.expectEqual(null, list.head);
+    try testing.expectEqual(null, list.tail);
+
+    try testing.expectEqual(0, list.len);
+}
+
+test "removeAt() should move the tail when items remain" {
+    var list = create();
+    defer list.deinit();
+
+    try list.addFirst(10);
+    try list.addFirst(11);
+    try list.addFirst(12);
+    
+    try testing.expectEqual(10, list.removeAt(2));
+
+    try testing.expect(list.head != null);
+    try testing.expect(list.tail != null);
+
+    try testing.expectEqual(null, list.head.?.prev);
+    try testing.expectEqual(12, list.head.?.value);
+    try testing.expectEqual(list.tail, list.head.?.next);
+
+    try testing.expectEqual(list.head, list.tail.?.prev);
+    try testing.expectEqual(11, list.tail.?.value);
+    try testing.expectEqual(null, list.tail.?.next);
+
+    try testing.expectEqual(2, list.len);
+}
+
+test "removeAt(middle) should remove the node at the specified index" {
+    var list = create();
+    defer list.deinit();
+
+    try list.addLast(10);
+    try list.addLast(11);
+    try list.addLast(12);
+
+    try testing.expectEqual(11, list.removeAt(1));
+
+    try testing.expect(list.head != null);
+
+    const ten = list.head.?;
+
+    try testing.expectEqual(null, ten.prev);
+    try testing.expectEqual(10, ten.value);
+    try testing.expect(null != ten.next);
+
+    const twelve = ten.next.?;
+
+    try testing.expectEqual(ten, twelve.prev);
+    try testing.expectEqual(12, twelve.value);
+    try testing.expectEqual(null, twelve.next);
+
+    try testing.expectEqual(twelve, list.tail);
+
+    try testing.expectEqual(2, list.len);
+}
+
 test "getAt() should return the value of the node at the specified index" {
     var list = create();
     defer list.deinit();
