@@ -60,6 +60,36 @@ pub fn DoublyLinkedList(comptime T: type) type {
             self.len += 1;
         }
 
+        /// O(n)
+        pub fn addAt(self: *Self, index: usize, value: T) Allocator.Error!void {
+            if (index == 0) {
+                return self.addFirst(value);
+            }
+
+            if (index == self.len) {
+                return self.addLast(value);
+            }
+
+            if (index > self.len) {
+                // TODO OOB error
+                return;
+            }
+
+            const curr = self.getNodeAt(index).?;
+            const new = try self.createNode(&value);
+
+            new.prev = curr.prev;
+            new.next = curr;
+
+            if (curr.prev) |curr_prev| {
+                curr_prev.next = new;
+            }
+
+            curr.prev = new;
+
+            self.len += 1;
+        }
+
         /// O(1)
         pub fn removeFirst(self: *Self) ?T {
             if (self.head) |head| {
@@ -107,14 +137,15 @@ pub fn DoublyLinkedList(comptime T: type) type {
         }
 
         fn getNodeAt(self: Self, index: usize) ?*Node {
+            // TODO OOB error
             if (index >= self.len) {
                 return null;
             }
 
-            var curr = self.head orelse unreachable;
+            var curr = self.head.?;
 
             for (0..index) |_| {
-                curr = curr.next orelse unreachable;
+                curr = curr.next.?;
             }
 
             return curr;
@@ -234,7 +265,7 @@ test "addLast() should create the head and tail when empty" {
     try testing.expectEqual(1, list.len);
 }
 
-test "addFirst() should create a new tail only when not empty" {
+test "addLast() should create a new tail only when not empty" {
     var list = create();
     defer list.deinit();
 
@@ -253,6 +284,105 @@ test "addFirst() should create a new tail only when not empty" {
     try testing.expectEqual(null, list.tail.?.next);
 
     try testing.expectEqual(2, list.len);
+}
+
+test "addAt(0) should create the head and tail when empty" {
+    var list = create();
+    defer list.deinit();
+
+    try list.addAt(0, 10);
+
+    try testing.expect(list.head != null);
+    try testing.expectEqual(list.head, list.tail);
+
+    try testing.expectEqual(10, list.head.?.value);
+    try testing.expectEqual(null, list.head.?.next);
+    try testing.expectEqual(null, list.head.?.prev);
+
+    try testing.expectEqual(1, list.len);
+}
+
+test "addAt(0) should create a new head only when not empty" {
+    var list = create();
+    defer list.deinit();
+
+    try list.addFirst(10);
+    try list.addAt(0, 11);
+
+    try testing.expect(list.head != null);
+    try testing.expect(list.tail != null);
+
+    try testing.expectEqual(null, list.head.?.prev);
+    try testing.expectEqual(11, list.head.?.value);
+    try testing.expectEqual(list.tail, list.head.?.next);
+
+    try testing.expectEqual(list.head, list.tail.?.prev);
+    try testing.expectEqual(10, list.tail.?.value);
+    try testing.expectEqual(null, list.tail.?.next);
+
+    try testing.expectEqual(2, list.len);
+}
+
+test "addAt(len - 1) should create a new tail only when not empty" {
+    var list = create();
+    defer list.deinit();
+
+    try list.addFirst(10);
+    try list.addAt(1, 11);
+
+    try testing.expect(list.head != null);
+    try testing.expect(list.tail != null);
+
+    try testing.expectEqual(null, list.head.?.prev);
+    try testing.expectEqual(10, list.head.?.value);
+    try testing.expectEqual(list.tail, list.head.?.next);
+
+    try testing.expectEqual(list.head, list.tail.?.prev);
+    try testing.expectEqual(11, list.tail.?.value);
+    try testing.expectEqual(null, list.tail.?.next);
+
+    try testing.expectEqual(2, list.len);
+}
+
+test "addAt(middle) should insert a new node at the specified index" {
+    var list = create();
+    defer list.deinit();
+
+    try list.addLast(10);
+    try list.addLast(12);
+    try list.addLast(13);
+
+    try list.addAt(1, 11);
+
+    try testing.expect(list.head != null);
+
+    const ten = list.head.?;
+
+    try testing.expectEqual(null, ten.prev);
+    try testing.expectEqual(10, ten.value);
+    try testing.expect(null != ten.next);
+
+    const eleven = ten.next.?;
+
+    try testing.expectEqual(ten, eleven.prev);
+    try testing.expectEqual(11, eleven.value);
+    try testing.expect(null != eleven.next);
+
+    const twelve = eleven.next.?;
+
+    try testing.expectEqual(eleven, twelve.prev);
+    try testing.expectEqual(12, twelve.value);
+    try testing.expect(null != twelve.next);
+
+    const thirteen = twelve.next.?;
+
+    try testing.expectEqual(twelve, thirteen.prev);
+    try testing.expectEqual(13, thirteen.value);
+    try testing.expectEqual(null, thirteen.next);
+
+    try testing.expectEqual(thirteen, list.tail);
+
+    try testing.expectEqual(4, list.len);
 }
 
 test "removeFirst() should return null when empty" {
