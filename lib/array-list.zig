@@ -3,7 +3,6 @@ const testing = std.testing;
 const mem = std.mem;
 const Allocator = std.mem.Allocator;
 
-// TODO DRY up growth logic
 // TODO std lib optimises growth with resize()
 pub fn ArrayList(comptime T: type) type {
     return struct {
@@ -46,21 +45,33 @@ pub fn ArrayList(comptime T: type) type {
             return self.items[0..self.len];
         }
 
+        fn growToCapacityWithEmptyIndex(self: *Self, capacity: usize, index: usize) Allocator.Error!void {
+            const left_slice = self.items[0..index];
+            const right_slice = self.items[index..self.len];
+
+            const new_mem = try self.allocator.alloc(T, capacity);
+
+            @memcpy(new_mem.ptr, left_slice);
+            @memcpy(new_mem.ptr + index + 1, right_slice);
+            self.allocator.free(self.toSlice());
+
+            self.items = new_mem.ptr;
+            self.capacity = new_mem.len;
+        }
+
+        fn shiftFromIndex(self: Self, index: usize) void {
+            const src_slice = self.items[index..self.len];
+            const dest_slice = self.items[index + 1..self.len + 1];
+
+            mem.copyBackwards(T, dest_slice, src_slice);
+        }
+
         /// O(n)
         pub fn addFirst(self: *Self, value: T) Allocator.Error!void {
-            const items_slice = self.toSlice();
-
             if (self.len == self.capacity) {
-                const new_mem = try self.allocator.alloc(T, self.capacity * DefaultGrowthFactor);
-
-                // Copy with offset to leave index 0 open
-                @memcpy(new_mem.ptr + 1, items_slice);
-                self.allocator.free(items_slice);
-            
-                self.items = new_mem.ptr;
-                self.capacity = new_mem.len;
+                try self.growToCapacityWithEmptyIndex(self.capacity * DefaultGrowthFactor, 0);
             } else if (self.len > 0) {
-                @memcpy(items_slice.ptr + 1, items_slice);
+                self.shiftFromIndex(0);
             }
 
             self.items[0] = value;
@@ -83,22 +94,11 @@ pub fn ArrayList(comptime T: type) type {
             }
 
             // 0 < index < self.len
-            const right_slice = self.items[index..self.len];
 
             if (self.len == self.capacity) {
-                const new_mem = try self.allocator.alloc(T, self.capacity * DefaultGrowthFactor);
-
-                // Copy items after index with index
-                @memcpy(new_mem.ptr, self.items[0..index]);
-                @memcpy(new_mem.ptr + index + 1, right_slice);
-                self.allocator.free(self.toSlice());
-
-                self.items = new_mem.ptr;
-                self.capacity = new_mem.len;
+                try self.growToCapacityWithEmptyIndex(self.capacity * DefaultGrowthFactor, index);
             } else {
-                const dest_slice = self.items[index + 1..self.len + 1];
-
-                mem.copyBackwards(T, dest_slice, right_slice);
+                self.shiftFromIndex(index);
             }
 
             self.items[index] = value;
