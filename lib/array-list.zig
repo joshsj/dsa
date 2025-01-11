@@ -50,6 +50,10 @@ pub fn ArrayList(comptime T: type) type {
 
         /// O(n)
         pub fn growToCapacity(self: *Self, capacity: usize) Allocator.Error!void {
+            if (capacity <= self.capacity) {
+                return;
+            }
+
             // TODO std lib optimises with resize()
             const new_mem = try self.allocator.alloc(T, capacity);
 
@@ -66,6 +70,27 @@ pub fn ArrayList(comptime T: type) type {
         /// Convenience method, needed because self.items is only a ptr
         pub fn toSlice(self: Self) []T {
             return self.items[0..self.len];
+        }
+
+        /// O(n)
+        pub fn addFirst(self: *Self, value: T) Allocator.Error!void {
+            const items_slice = self.toSlice();
+
+            if (self.len == self.capacity) {
+                const new_mem = try self.allocator.alloc(T, self.capacity * DefaultGrowthFactor);
+
+                // Copy with offset to leave index 0 open
+                @memcpy(new_mem.ptr + 1, items_slice);
+                self.allocator.free(items_slice);
+            
+                self.items = new_mem.ptr;
+                self.capacity = new_mem.len;
+            } else if (self.len > 0) {
+                @memcpy(items_slice.ptr + 1, items_slice);
+            }
+
+            self.items[0] = value;
+            self.len += 1;
         }
 
         // O(1)
@@ -110,7 +135,7 @@ test "when initCapacity() then list has no items" {
     try testing.expectEqual(0, list.len);
 }
 
-test "given len < capacity when addLast() then does not grow and value is inserted at current length" {
+test "given len < capacity when addLast() then does not grow and value is inserted at [len]" {
     var onceAllocator = testing.FailingAllocator.init(testing.allocator, .{ .fail_index = 1 });
 
     var list = try TestList.init(onceAllocator.allocator());
@@ -126,7 +151,7 @@ test "given len < capacity when addLast() then does not grow and value is insert
     try testing.expectEqualSlices(u8, &expected, list.toSlice());
 }
 
-test "given len == capacity when addLast() then grows and value is inserted at current length" {
+test "given len == capacity when addLast() then grows and value is inserted at [len]" {
     var list = try TestList.initCapacity(testing.allocator, 2);
     defer list.deinit();
 
@@ -137,7 +162,39 @@ test "given len == capacity when addLast() then grows and value is inserted at c
     try testing.expectEqual(3, list.len);
     try testing.expectEqual(4, list.capacity);
 
-    const expected = [_]u8 { 6, 9, 12};
+    const expected = [_]u8 { 6, 9, 12 };
+
+    try testing.expectEqualSlices(u8, &expected, list.toSlice());
+}
+
+test "given len < capacity when addFirst() then does not grow and items are shifted by 1 and value is inserted at [0]" {
+    var onceAllocator = testing.FailingAllocator.init(testing.allocator, .{ .fail_index = 1 });
+
+    var list = try TestList.init(onceAllocator.allocator());
+    defer list.deinit();
+
+    try list.addFirst(6);
+    try list.addFirst(9);
+
+    try testing.expectEqual(2, list.len);
+
+    const expected = [_]u8 { 9, 6 };
+
+    try testing.expectEqualSlices(u8, &expected, list.toSlice());
+}
+
+test "given len == capacity when addFirst() then grows and items are shifted by 1 and value is inserted at [0]" {
+    var list = try TestList.initCapacity(testing.allocator, 2);
+    defer list.deinit();
+
+    try list.addFirst(6);
+    try list.addFirst(9);
+    try list.addFirst(12);
+
+    try testing.expectEqual(3, list.len);
+    try testing.expectEqual(4, list.capacity);
+
+    const expected = [_]u8 { 12, 9, 6 };
 
     try testing.expectEqualSlices(u8, &expected, list.toSlice());
 }
