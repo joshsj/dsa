@@ -1,6 +1,6 @@
 test {
     // Not great...
-    _ = @import("SinglyLinkedList.zig");
-    _ = @import("DoublyLinkedList.zig");
-    _ = @import("ArrayList.zig");
+    _ = @import("singly-linked-list.zig");
+    _ = @import("doubly-linked-list.zig");
+    _ = @import("array-list.zig");
 }
