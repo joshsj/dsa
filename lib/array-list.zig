@@ -6,6 +6,7 @@ pub fn ArrayList(comptime T: type) type {
     return struct {
         const Self = @This();
         const DefaultCapacity = 10; // We Java now boys
+        const DefaultGrowthFactor = 2;
 
         allocator: Allocator,
         /// Std lib uses a slice, I'm using a ptr
@@ -39,8 +40,18 @@ pub fn ArrayList(comptime T: type) type {
 
         /// O(n)
         pub fn grow(self: *Self) Allocator.Error!void {
+            try self.growByFactor(DefaultGrowthFactor);
+        }
+
+        /// O(n)
+        pub fn growByFactor(self: *Self, factor: usize) Allocator.Error!void {
+            try self.growToCapacity(self.capacity * factor);
+        }
+
+        /// O(n)
+        pub fn growToCapacity(self: *Self, capacity: usize) Allocator.Error!void {
             // TODO std lib optimises with resize()
-            const new_mem = try self.allocator.alloc(T, self.capacity * 2);
+            const new_mem = try self.allocator.alloc(T, capacity);
 
             // Use slice of self to inform memcpy of length
             const items_slice = self.toSlice();
