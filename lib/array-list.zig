@@ -38,7 +38,7 @@ pub fn ArrayList(comptime T: type) type {
         }
 
         /// O(n)
-        fn grow(self: *Self) Allocator.Error!void {
+        pub fn grow(self: *Self) Allocator.Error!void {
             // TODO std lib optimises with resize()
             const new_mem = try self.allocator.alloc(T, self.capacity * 2);
 
