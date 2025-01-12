@@ -64,8 +64,6 @@ pub fn partition(comptime T: type, comptime compare: Compare(T), items: []T) ?us
     var r: usize = 0;
 
     while (r < items.len) : (r += 1) {
-        // TODO including == is cleaner as the pivot will be the final swap
-        // but it creates more swaps as any equal values will be swapper needlessly
         if (compare(items[r], pivot) != .gt) {
             l = if (l) |tmp| tmp + 1 else 0;
 
