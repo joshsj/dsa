@@ -98,9 +98,18 @@ fn sum(str: Str) usize {
     return ret;
 }
 
-// Sum of chars in string
-fn badCompare(a: Str, b: Str) Order {
-    return defaultCompare(usize)(sum(a), sum(b));
+fn compareStrings(a: Str, b: Str) Order {
+    for (a, b) |char_a, char_b| {
+        if (char_a > char_b) {
+            return .gt;
+        }
+
+        if (char_a < char_b) {
+            return .lt;
+        }
+    }
+
+    return .eq;
 }
 
 test "given a sorted slice of i8 when bubble() then slice is unchanged" {
@@ -134,13 +143,11 @@ test "given an unsorted slice of i8 when bubble() then slice is sorted" {
 }
 
 test "given an unsorted slice of strings when bubble() then slice is sorted" {
-    var items = [_]Str { "oof", "foo", "baz", "bar", };
+    var items = [_]Str { "oof", "bar", "foo", "baz", };
 
-    bubble(Str, badCompare, &items);
+    bubble(Str, compareStrings, &items);
 
-    // oof comes before foo because string have same sum
-    // and swaps are only executed when l > r
-    const expected = [_]Str { "bar", "baz", "oof", "foo", };
+    const expected = [_]Str { "bar", "baz", "foo", "oof", };
 
     try testing.expectEqualSlices(Str, &expected, &items);
 }
@@ -204,12 +211,11 @@ test "given a sorted slice of u8 when quick() then slice is unchanged" {
 }
 
 test "given an unsorted slice of strings when quick() then slice is sorted" {
-    var items = [_]Str { "foo", "oof", "baz", "bar", };
+    var items = [_]Str { "baz", "foo", "oof", "bar", };
 
-    quick(Str, badCompare, &items);
+    quick(Str, compareStrings, &items);
 
-    // foo and oof are swapped only as a consequence of quick() logic
-    const expected = [_]Str { "bar", "baz", "oof", "foo", };
+    const expected = [_]Str { "bar", "baz", "foo", "oof", };
 
     try testing.expectEqualSlices(Str, &expected, &items);
 }
