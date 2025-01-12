@@ -98,6 +98,53 @@ pub fn ArrayList(comptime T: type) type {
             self.len += 1;
         }
 
+        pub fn removeFirst(self: *Self) ?T {
+            return self.removeAt(0);
+        }
+
+        pub fn removeAt(self: *Self, index: usize) ?T {
+            if (index + 1 > self.len) {
+                return null;
+            }
+
+            if (index + 1 == self.len) {
+                return self.removeLast();
+            }
+
+            // 0 <= index < self.len
+            
+            const value = self.items[index];
+
+            const src_slice = self.items[index + 1..self.len];
+            const dest_slice = self.items[index..self.len - 1];
+
+            mem.copyForwards(T, dest_slice, src_slice);
+
+            self.len -= 1;
+
+            return value;
+        }
+
+        /// O(1)
+        pub fn removeLast(self: *Self) ?T {
+            if (self.len == 0) {
+                return null;
+            }
+
+            self.len -= 1;
+            return self.items[self.len];
+        }
+
+        /// O(1)
+        pub fn getAt(self: Self, index: usize) ?T {
+            return if (index + 1 <= self.len) self.items[index] else null;
+        }
+
+        /// O(1)
+        pub fn clear(self: *Self) void {
+            self.len = 0;
+        }
+
         /// Convenience method, needed because self.items is only a ptr
         pub fn toSlice(self: Self) []T {
             return self.items[0..self.len];

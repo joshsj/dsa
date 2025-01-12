@@ -8,8 +8,8 @@ const DoublyLinkedList = @import("doubly-linked-list.zig").DoublyLinkedList;
 fn run(list: anytype) !void {
     try testing.expectEqual(0, list.len);
 
-    try list.addFirst(1);
     try list.addFirst(2);
+    try list.addFirst(1);
     try list.addLast(4);
     try list.addLast(5);
 
@@ -23,7 +23,13 @@ fn run(list: anytype) !void {
     try testing.expectEqual(5, list.removeLast());
     try testing.expectEqual(3, list.removeAt(1));
 
+    try testing.expectEqual(2, list.len);
+
     try testing.expectEqual(4, list.getAt(1));
+
+    list.clear();
+
+    try testing.expectEqual(0, list.len);
 }
 
 test DoublyLinkedList {

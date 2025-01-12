@@ -178,14 +178,9 @@ pub fn DoublyLinkedList(comptime T: type) type {
 
         /// O(n)
         pub fn clear(self: *Self) void {
-            while (!self.isEmpty()) {
+            while (self.len != 0) {
                 _ = self.removeFirst();
             }
-        }
-
-        /// O(1)
-        pub fn isEmpty(self: Self) bool {
-            return self.len == 0;
         }
 
         fn createNode(self: Self, value: *const T) Allocator.Error!*Node {
@@ -220,21 +215,6 @@ test "tail should be null when no items added" {
     const list = create();
 
     try testing.expectEqual(null, list.tail);
-}
-
-test "isEmpty() should be true when no items added" {
-    const list = create();
-
-    try testing.expect(list.isEmpty());
-}
-
-test "isEmpty() should be false when no items added" {
-    var list = create();
-    defer list.deinit();
-
-    try list.addFirst(10);
-
-    try testing.expect(!list.isEmpty());
 }
 
 test "addFirst() should create the head and tail when empty" {
