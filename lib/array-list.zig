@@ -40,32 +40,6 @@ pub fn ArrayList(comptime T: type) type {
             // TODO reset capacity to 0?
         }
 
-        /// Convenience method, needed because self.items is only a ptr
-        pub fn toSlice(self: Self) []T {
-            return self.items[0..self.len];
-        }
-
-        fn growToCapacityWithEmptyIndex(self: *Self, capacity: usize, index: usize) Allocator.Error!void {
-            const left_slice = self.items[0..index];
-            const right_slice = self.items[index..self.len];
-
-            const new_mem = try self.allocator.alloc(T, capacity);
-
-            @memcpy(new_mem.ptr, left_slice);
-            @memcpy(new_mem.ptr + index + 1, right_slice);
-            self.allocator.free(self.toSlice());
-
-            self.items = new_mem.ptr;
-            self.capacity = new_mem.len;
-        }
-
-        fn shiftFromIndex(self: Self, index: usize) void {
-            const src_slice = self.items[index..self.len];
-            const dest_slice = self.items[index + 1..self.len + 1];
-
-            mem.copyBackwards(T, dest_slice, src_slice);
-        }
-
         /// O(n)
         pub fn addFirst(self: *Self, value: T) Allocator.Error!void {
             if (self.len == self.capacity) {
@@ -122,6 +96,32 @@ pub fn ArrayList(comptime T: type) type {
 
             self.items[self.len] = value;
             self.len += 1;
+        }
+
+        /// Convenience method, needed because self.items is only a ptr
+        pub fn toSlice(self: Self) []T {
+            return self.items[0..self.len];
+        }
+
+        fn growToCapacityWithEmptyIndex(self: *Self, capacity: usize, index: usize) Allocator.Error!void {
+            const left_slice = self.items[0..index];
+            const right_slice = self.items[index..self.len];
+
+            const new_mem = try self.allocator.alloc(T, capacity);
+
+            @memcpy(new_mem.ptr, left_slice);
+            @memcpy(new_mem.ptr + index + 1, right_slice);
+            self.allocator.free(self.toSlice());
+
+            self.items = new_mem.ptr;
+            self.capacity = new_mem.len;
+        }
+
+        fn shiftFromIndex(self: Self, index: usize) void {
+            const src_slice = self.items[index..self.len];
+            const dest_slice = self.items[index + 1..self.len + 1];
+
+            mem.copyBackwards(T, dest_slice, src_slice);
         }
     };
 }
