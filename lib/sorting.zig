@@ -31,7 +31,7 @@ pub fn defaultCompare(comptime T: type) Compare(T) {
 }
 
 /// O(n^2)
-pub fn bubble(comptime T: type, comptime compare: Compare(T), items: []T) void {
+pub fn bubble(comptime T: type, compare: *const Compare(T), items: []T) void {
     if (items.len <= 1) {
         return;
     }
@@ -49,7 +49,7 @@ pub fn bubble(comptime T: type, comptime compare: Compare(T), items: []T) void {
 
 /// Uses last item as the pivot value
 /// O(n)
-pub fn partition(comptime T: type, comptime compare: Compare(T), items: []T) ?usize {
+pub fn partition(comptime T: type, compare: *const Compare(T), items: []T) ?usize {
     if (items.len == 0) {
         return null;
     }
@@ -74,7 +74,10 @@ pub fn partition(comptime T: type, comptime compare: Compare(T), items: []T) ?us
     return l orelse r - 1;
 }
 
-pub fn quick(comptime T: type, comptime compare: Compare(T), items: []T) void {
+/// O(n*log(n))
+/// partition() is O(n)
+/// quick calls partition log(n) times
+pub fn quick(comptime T: type, compare: *const Compare(T), items: []T) void {
     if (items.len <= 1) {
         return;
     }
@@ -85,18 +88,28 @@ pub fn quick(comptime T: type, comptime compare: Compare(T), items: []T) void {
     quick(T, compare, items[pivot_idx..items.len]);
 }
 
-const Str = []const u8;
-
-// Zig needs LINQ or list comprehension - SOMETHING
-fn sum(str: Str) usize {
-    var ret: usize = 0;
-
-    for (str) |i| { 
-        ret += i;
+/// O(n^2)
+pub fn selection(comptime T: type, compare: *const Compare(T), items: []T) void {
+   if (items.len <= 1) {
+        return;
     }
 
-    return ret;
+    for (0..items.len) |i| {
+        var smallest_idx = i;
+
+        for (i + 1..items.len) |j| {
+            if (compare(items[j], items[smallest_idx]) == .lt) {
+                smallest_idx = j;
+            }
+        }
+
+        if (smallest_idx != i) {
+            mem.swap(T, &items[i], &items[smallest_idx]);
+        }
+    }
 }
+
+const Str = []const u8;
 
 fn compareStrings(a: Str, b: Str) Order {
     for (a, b) |char_a, char_b| {
@@ -112,44 +125,66 @@ fn compareStrings(a: Str, b: Str) Order {
     return .eq;
 }
 
-test "given a sorted slice of i8 when bubble() then slice is unchanged" {
-    var items = [_]i8 { 5, 10, };
+fn test_u8s(sort: fn([]u8, *const Compare(u8)) void) !void {
+    var no_items = [0]u8 {};
+    sort(&no_items, &defaultCompare(u8));
+    try testing.expectEqualSlices(u8, &[_]u8 {}, &no_items);
 
-    bubble(i8, defaultCompare(i8), &items);
+    var one_item = [_]u8 { 4, };
+    sort(&one_item, &defaultCompare(u8));
+    try testing.expectEqualSlices(u8, &[_]u8 { 4, }, &one_item);
 
-    const expected = [_]i8 { 5, 10, };
-
-    try testing.expectEqualSlices(i8, &expected, &items);
+    var some_items = [_]u8 { 5, 3, 4, 7, 6, 8, 1, 9, 2, 0, };
+    sort(&some_items, &defaultCompare(u8));
+    try testing.expectEqualSlices(u8, &[_]u8 { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, }, &some_items);
 }
 
-test "given a sorted slice of i8 when bubble() then slice is sorted" {
-    var items = [_]i8 { 10, 5 };
-
-    bubble(i8, defaultCompare(i8), &items);
-
-    const expected = [_]i8 { 5, 10, };
-
-    try testing.expectEqualSlices(i8, &expected, &items);
+fn test_strs(sort: fn([]Str, *const Compare(Str)) void) !void {
+    var items = [_]Str { "baz", "foo", "oof", "bar", };
+    sort(&items, &compareStrings);
+    try testing.expectEqualSlices(Str, &[_]Str { "bar", "baz", "foo", "oof", }, &items);
 }
 
-test "given an unsorted slice of i8 when bubble() then slice is sorted" {
-    var items = [_]i8 { 10, 5, -2, 0, 7 };
+test bubble {
+    try test_u8s(struct {
+        fn f(data: []u8, compare: *const Compare(u8)) void {
+            bubble(u8, compare, data);
+        }
+    }.f);
 
-    bubble(i8, defaultCompare(i8), &items);
-
-    const expected = [_]i8 { -2, 0, 5, 7, 10 };
-
-    try testing.expectEqualSlices(i8, &expected, &items);
+    try test_strs(struct {
+        fn f(data: []Str, compare: *const Compare(Str)) void {
+            bubble(Str, compare, data);
+        }
+    }.f);
 }
 
-test "given an unsorted slice of strings when bubble() then slice is sorted" {
-    var items = [_]Str { "oof", "bar", "foo", "baz", };
+test quick {
+    try test_u8s(struct {
+        fn f(data: []u8, compare: *const Compare(u8)) void {
+            quick(u8, compare, data);
+        }
+    }.f);
 
-    bubble(Str, compareStrings, &items);
+    try test_strs(struct {
+        fn f(data: []Str, compare: *const Compare(Str)) void {
+            quick(Str, compare, data);
+        }
+    }.f);
+}
 
-    const expected = [_]Str { "bar", "baz", "foo", "oof", };
+test selection {
+    try test_u8s(struct {
+        fn f(data: []u8, compare: *const Compare(u8)) void {
+            selection(u8, compare, data);
+        }
+    }.f);
 
-    try testing.expectEqualSlices(Str, &expected, &items);
+    try test_strs(struct {
+        fn f(data: []Str, compare: *const Compare(Str)) void {
+            selection(Str, compare, data);
+        }
+    }.f);
 }
 
 test "given an empty slice when partition() then pivot index is null" {
@@ -188,35 +223,5 @@ test "given a sorted slice when partition() then correct pivot index is returned
 
     try testing.expectEqual(4, pivot_idx);
     try testing.expectEqualSlices(u8, &expected, &items);
-}
-
-test "given an unsorted slice of u8 when quick() then slice is sorted" {
-    var items = [_]u8 { 9, 4, 3, 7, 8, 2, 5 };
-
-    const expected = [_]u8 { 2, 3, 4, 5, 7, 8, 9, };
-
-    quick(u8, defaultCompare(u8), &items);
-
-    try testing.expectEqualSlices(u8, &expected, &items);
-}
-
-test "given a sorted slice of u8 when quick() then slice is unchanged" {
-    var items = [_]u8 { 2, 3, 4, 5, 7, 8, 9, };
-
-    const expected = [_]u8 { 2, 3, 4, 5, 7, 8, 9, };
-
-    quick(u8, defaultCompare(u8), &items);
-
-    try testing.expectEqualSlices(u8, &expected, &items);
-}
-
-test "given an unsorted slice of strings when quick() then slice is sorted" {
-    var items = [_]Str { "baz", "foo", "oof", "bar", };
-
-    quick(Str, compareStrings, &items);
-
-    const expected = [_]Str { "bar", "baz", "foo", "oof", };
-
-    try testing.expectEqualSlices(Str, &expected, &items);
 }
 
