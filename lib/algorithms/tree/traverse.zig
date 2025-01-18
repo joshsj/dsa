@@ -15,6 +15,7 @@ pub fn Visit(
 }
 
 /// O(n)
+/// Depth-first
 pub fn preOrder(
     comptime TValue: type,
     comptime TContext: type,
@@ -29,6 +30,8 @@ pub fn preOrder(
     }
 }
 
+/// O(n)
+/// Depth-first
 pub fn inOrder(
     comptime TValue: type,
     comptime TContext: type,
@@ -44,6 +47,7 @@ pub fn inOrder(
 }
 
 /// O(n)
+/// Depth-first
 pub fn postOrder(
     comptime TValue: type,
     comptime TContext: type,

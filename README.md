@@ -2,13 +2,13 @@
 
 My notes and implementations.
 
-## Commands
-
-### Install
+## Install
 
 ```sh
 winget install zig.zig
 ```
+
+## Commands
 
 ### Run tests
 
