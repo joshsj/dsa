@@ -4,31 +4,9 @@ const mem = std.mem;
 const math = std.math;
 const Order = math.Order;
 
-// TODO std lib passes the items as a 'context'
-// to these kind of functions - why?
-fn Compare(comptime T: type) type {
-    return fn (l: T, r: T) Order;
-}
-
-pub fn defaultCompare(comptime T: type) Compare(T) {
-    return struct {
-        fn f(l: T, r: T) Order {
-            if (l > r) {
-                return .gt;
-            } 
-
-            if (l < r) {
-                return .lt;
-            }
-
-            // TODO check equality explicitly?
-            // shouldn't be needed but idk zig
-            // well enough to know of any edge cases
-            // (i'm looking at you, floats)
-            return .eq;
-        }
-    }.f;
-}
+const common = @import("../common.zig");
+const Compare = common.Compare;
+const defaultCompare = common.defaultCompare;
 
 /// O(n^2)
 pub fn bubble(comptime T: type, compare: *const Compare(T), items: []T) void {

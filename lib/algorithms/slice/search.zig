@@ -1,28 +1,11 @@
 const std = @import("std");
 const testing = std.testing;
+
+const common = @import("../common.zig");
+const Compare = common.Compare;
+const defaultCompare = common.defaultCompare;
+
 const sort = @import("sort.zig");
-const Order = std.math.Order;
-
-fn Compare(comptime T: type) type {
-    return fn (l: T, r: T) Order;
-}
-
-// TODO: DRY
-pub fn defaultCompare(comptime T: type) Compare(T) {
-    return struct {
-        fn f(l: T, r: T) Order {
-            if (l > r) {
-                return .gt;
-            } 
-
-            if (l < r) {
-                return .lt;
-            }
-
-            return .eq;
-        }
-    }.f;
-}
 
 /// O(log(n))
 pub fn binary(
