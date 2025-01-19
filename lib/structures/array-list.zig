@@ -3,6 +3,8 @@ const testing = std.testing;
 const mem = std.mem;
 const Allocator = std.mem.Allocator;
 
+const SliceIterator = @import("../iterator.zig").SliceIterator;
+
 // TODO std lib optimises growth with resize()
 pub fn ArrayList(comptime T: type) type {
     return struct {
@@ -33,6 +35,16 @@ pub fn ArrayList(comptime T: type) type {
                 .items = items.ptr,
                 .len = 0
             };
+        }
+
+        pub fn fromIterator(allocator: Allocator, iter: anytype) Allocator.Error!Self {
+            var self = try init(allocator);
+
+            while (iter.next()) |curr| {
+                try self.addLast(curr);
+            }
+
+            return self;
         }
 
         pub fn deinit(self: Self) void {
@@ -85,7 +97,7 @@ pub fn ArrayList(comptime T: type) type {
                 const new_mem = try self.allocator.alloc(T, self.capacity * DefaultGrowthFactor);
 
                 // Use slice of self to inform memcpy of length
-                const items_slice = self.toSlice();
+                const items_slice = self.slice();
 
                 @memcpy(new_mem.ptr, items_slice);
                 self.allocator.free(items_slice);
@@ -145,9 +157,12 @@ pub fn ArrayList(comptime T: type) type {
             self.len = 0;
         }
 
-        /// Convenience method, needed because self.items is only a ptr
-        pub fn toSlice(self: Self) []T {
+        pub fn slice(self: Self) []T {
             return self.items[0..self.len];
+        }
+
+        pub fn iterator(self: Self) SliceIterator {
+            return SliceIterator(T).new(self.slice());
         }
 
         fn growToCapacityWithEmptyIndex(self: *Self, capacity: usize, index: usize) Allocator.Error!void {
@@ -158,7 +173,7 @@ pub fn ArrayList(comptime T: type) type {
 
             @memcpy(new_mem.ptr, left_slice);
             @memcpy(new_mem.ptr + index + 1, right_slice);
-            self.allocator.free(self.toSlice());
+            self.allocator.free(self.slice());
 
             self.items = new_mem.ptr;
             self.capacity = new_mem.len;
@@ -203,6 +218,16 @@ test "when initCapacity() then list has no items" {
     try testing.expectEqual(0, list.len);
 }
 
+test "given iterator when fromIterator() then list has items from iterator" {
+    const items = [_]u8 { 1, 2, 3, 4, };
+    var iter = SliceIterator(u8).new(&items);
+
+    var list = try ArrayList(u8).fromIterator(testing.allocator, &iter);
+    defer list.deinit();
+
+    try testing.expectEqualSlices(u8, &items, list.slice());
+}
+
 test "given len < capacity when addLast() then does not grow and value is inserted at [len]" {
     var onceAllocator = testing.FailingAllocator.init(testing.allocator, .{ .fail_index = 1 });
 
@@ -217,7 +242,7 @@ test "given len < capacity when addLast() then does not grow and value is insert
 
     const expected = [_]u8 { 6, 9 };
 
-    try testing.expectEqualSlices(u8, &expected, list.toSlice());
+    try testing.expectEqualSlices(u8, &expected, list.slice());
 }
 
 test "given len == capacity when addLast() then grows and value is inserted at [len]" {
@@ -233,7 +258,7 @@ test "given len == capacity when addLast() then grows and value is inserted at [
 
     const expected = [_]u8 { 6, 9, 12 };
 
-    try testing.expectEqualSlices(u8, &expected, list.toSlice());
+    try testing.expectEqualSlices(u8, &expected, list.slice());
 }
 
 test "given len < capacity when addFirst() then does not grow and items are shifted by 1 and value is inserted at [0]" {
@@ -250,7 +275,7 @@ test "given len < capacity when addFirst() then does not grow and items are shif
 
     const expected = [_]u8 { 9, 6 };
 
-    try testing.expectEqualSlices(u8, &expected, list.toSlice());
+    try testing.expectEqualSlices(u8, &expected, list.slice());
 }
 
 test "given len == capacity when addFirst() then grows and items are shifted by 1 and value is inserted at [0]" {
@@ -266,7 +291,7 @@ test "given len == capacity when addFirst() then grows and items are shifted by 
 
     const expected = [_]u8 { 12, 9, 6 };
 
-    try testing.expectEqualSlices(u8, &expected, list.toSlice());
+    try testing.expectEqualSlices(u8, &expected, list.slice());
 }
 
 test "given len < capacity when addAt(middle) then does not grow and subsequent items are shifted by 1 and value is inserted at [middle]" {
@@ -286,7 +311,7 @@ test "given len < capacity when addAt(middle) then does not grow and subsequent 
 
     const expected = [_]u8 { 6, 9, 12, 15 };
 
-    try testing.expectEqualSlices(u8, &expected, list.toSlice());
+    try testing.expectEqualSlices(u8, &expected, list.slice());
 }
 
 test "given len == capacity when addAt(middle) then grows and subsequent items are shifted by 1 and value is inserted at [middle]" {
@@ -304,6 +329,6 @@ test "given len == capacity when addAt(middle) then grows and subsequent items a
 
     const expected = [_]u8 { 6, 9, 12, 15 };
 
-    try testing.expectEqualSlices(u8, &expected, list.toSlice());
+    try testing.expectEqualSlices(u8, &expected, list.slice());
 }
 

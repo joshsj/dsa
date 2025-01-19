@@ -119,7 +119,7 @@ test preOrder {
 
     try preOrder(u8, TestContext, &manyNodes, &testVisit, &context);
 
-    try testing.expectEqualSlices(u8, &expected, context.values.toSlice());
+    try testing.expectEqualSlices(u8, &expected, context.values.slice());
 }
 
 test inOrder {
@@ -139,7 +139,7 @@ test inOrder {
 
     try inOrder(u8, TestContext, &manyNodes, &testVisit, &context);
 
-    try testing.expectEqualSlices(u8, &expected, context.values.toSlice());
+    try testing.expectEqualSlices(u8, &expected, context.values.slice());
 }
 
 test postOrder {
@@ -159,7 +159,7 @@ test postOrder {
 
     try postOrder(u8, TestContext, &manyNodes, &testVisit, &context);
 
-    try testing.expectEqualSlices(u8, &expected, context.values.toSlice());
+    try testing.expectEqualSlices(u8, &expected, context.values.slice());
 }
  
 test breadthFirst {
@@ -182,6 +182,6 @@ test breadthFirst {
 
     try breadthFirst(u8, TestContext, &manyNodes, &testVisit, &context, testing.allocator);
 
-    try testing.expectEqualSlices(u8, &expected, context.values.toSlice());
+    try testing.expectEqualSlices(u8, &expected, context.values.slice());
 }
 
