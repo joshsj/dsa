@@ -27,6 +27,11 @@ pub fn Queue(comptime T: type) type {
         pub fn deqeue(self: *Self) ?T {
             return self.items.removeLast();
         }
+
+        /// O(1)
+        pub fn peek(self: Self) ?T {
+            return if (self.items.tail) |tail| tail.value else null;
+        }
     };
 }
 
