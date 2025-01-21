@@ -24,7 +24,7 @@ pub fn Queue(comptime T: type) type {
         }
 
         /// O(1)
-        pub fn deqeue(self: *Self) ?T {
+        pub fn deque(self: *Self) ?T {
             return self.items.removeLast();
         }
 
@@ -44,7 +44,7 @@ test Queue {
     try queue.enqueue(2);
     try queue.enqueue(3);
 
-        try testing.expectEqual(1, queue.deqeue());
-    try testing.expectEqual(2, queue.deqeue());
-    try testing.expectEqual(3, queue.deqeue());
+    try testing.expectEqual(1, queue.deque());
+    try testing.expectEqual(2, queue.deque());
+    try testing.expectEqual(3, queue.deque());
 }
