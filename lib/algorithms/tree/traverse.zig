@@ -35,52 +35,34 @@ pub fn GoingNode(comptime T: type) type {
     };
 }
 
-fn goLeft(comptime T: type, iter: anytype, node: *GoingNode(T)) Allocator.Error!void {
-    node.going = .left;
-
-    if (node.inner.left) |left| {
-        try iter.path.push(try GoingNode(T).new(iter.allocator, left)); 
-    }
-
-    try iter.move();
-}
-
-fn goSelf(comptime T: type, node: *GoingNode(T)) void {
-    node.going = .self;
-}
-
-fn goRight(comptime T: type, iter: anytype, node: *GoingNode(T)) Allocator.Error!void {
-    node.going = .right;
-
-    if (node.inner.right) |right| {
-        try iter.path.push(try GoingNode(T).new(iter.allocator, right)); 
-    }
-
-    try iter.move();
-}
-
-fn goUp(comptime T: type, iter: anytype, node: *GoingNode(T)) Allocator.Error!void {
-    _ = iter.path.pop();
-    iter.allocator.destroy(node);
-    try iter.move();
-}
-
 /// O(n)
 /// Depth-first
-pub fn PreOrderIterator(comptime T: type) type {
+pub fn DepthFirstIterator(comptime T: type) type {
     return struct {
         const Self = @This();
+
+        pub const Order = enum { pre, in, post };
 
         allocator: Allocator,
         path: Stack(*GoingNode(T)),
         root: *const BinaryNode(u8),
+        move: *const fn(*Self) Allocator.Error!void,
         moved: bool = false,
 
-        pub fn init(allocator: Allocator, root: *const BinaryNode(u8)) Self {
+        pub fn init(
+            allocator: Allocator, 
+            root: *const BinaryNode(u8),
+            order: Order
+        ) Self {
             return Self { 
                 .allocator = allocator,
                 .path = Stack(*GoingNode(T)).init(allocator), 
-                .root = root
+                .root = root,
+                .move = switch (order) {
+                    .pre => &movePreOrder,
+                    .in => &moveInOrder,
+                    .post => &movePostOrder,
+                }
             };
         }
 
@@ -102,136 +84,81 @@ pub fn PreOrderIterator(comptime T: type) type {
                 self.moved = true;
             }
 
-            try self.move();
+            try self.move(self);
             return self.curr();
         }
 
-        fn move(self: *Self) Allocator.Error!void {
+        fn movePreOrder(self: *Self) Allocator.Error!void {
             const node = self.path.peek() orelse return;
 
             if (node.going) |going| {
                 switch (going) {
-                    .self => try goLeft(T, self, node),
-                    .left => try goRight(T, self, node),
-                    .right => try goUp(T, self, node),
+                    .self => try goLeft(self, node),
+                    .left => try goRight(self, node),
+                    .right => try goUp(self, node),
                 }
             } else {
-                goSelf(T, node);
+                goSelf(node);
             }
         }
-    };
-}
 
-/// O(n)
-/// Depth-first
-pub fn InOrderIterator(comptime T: type) type {
-    return struct {
-        const Self = @This();
-
-        allocator: Allocator,
-        path: Stack(*GoingNode(T)),
-        root: *const BinaryNode(u8),
-        moved: bool = false,
-
-        pub fn init(allocator: Allocator, root: *const BinaryNode(u8)) Self {
-            return Self { 
-                .allocator = allocator,
-                .path = Stack(*GoingNode(T)).init(allocator), 
-                .root = root
-            };
-        }
-
-        pub fn deinit(self: *Self) void {
-            while (self.path.pop()) |node| {
-                self.allocator.destroy(node);
-            }
-
-            self.path.deinit();
-        }
-        
-        pub fn curr(self: Self) ?T {
-            return if (self.moved and self.path.peek() != null) self.path.peek().?.inner.value else null;
-        }
-
-        pub fn next(self: *Self) Allocator.Error!?T {
-            if (!self.moved) {
-                try self.path.push(try GoingNode(T).new(self.allocator, self.root));
-                self.moved = true;
-            }
-
-            try self.move();
-            return self.curr();
-        }
-
-        fn move(self: *Self) Allocator.Error!void {
+        fn moveInOrder(self: *Self) Allocator.Error!void {
             const node = self.path.peek() orelse return;
 
             if (node.going) |going| {
                 switch (going) {
-                    .left => goSelf(T, node),
-                    .self => try goRight(T, self, node),
-                    .right => try goUp(T, self, node),
+                    .left => goSelf(node),
+                    .self => try goRight(self, node),
+                    .right => try goUp(self, node),
                 }
             } else {
-                try goLeft(T, self, node);
+                try goLeft(self, node);
             }
         }
-    };
-}
 
-/// O(n)
-/// Depth-first
-pub fn PostOrderIterator(comptime T: type) type {
-    return struct {
-        const Self = @This();
-
-        allocator: Allocator,
-        path: Stack(*GoingNode(T)),
-        root: *const BinaryNode(u8),
-        moved: bool = false,
-
-        pub fn init(allocator: Allocator, root: *const BinaryNode(u8)) Self {
-            return Self { 
-                .allocator = allocator,
-                .path = Stack(*GoingNode(T)).init(allocator), 
-                .root = root
-            };
-        }
-
-        pub fn deinit(self: *Self) void {
-            while (self.path.pop()) |node| {
-                self.allocator.destroy(node);
-            }
-
-            self.path.deinit();
-        }
-        
-        pub fn curr(self: Self) ?T {
-            return if (self.moved and self.path.peek() != null) self.path.peek().?.inner.value else null;
-        }
-
-        pub fn next(self: *Self) Allocator.Error!?T {
-            if (!self.moved) {
-                try self.path.push(try GoingNode(T).new(self.allocator, self.root));
-                self.moved = true;
-            }
-
-            try self.move();
-            return self.curr();
-        }
-
-        fn move(self: *Self) Allocator.Error!void {
+        fn movePostOrder(self: *Self) Allocator.Error!void {
             const node = self.path.peek() orelse return;
 
             if (node.going) |going| {
                 switch (going) {
-                    .left => try goRight(T, self, node),
-                    .right => goSelf(T, node),
-                    .self => try goUp(T, self, node),
+                    .left => try goRight(self, node),
+                    .right => goSelf(node),
+                    .self => try goUp(self, node),
                 }
             } else {
-                try goLeft(T, self, node);
+                try goLeft(self, node);
             }
+        }
+
+        fn goLeft(self: *Self, node: *GoingNode(T)) Allocator.Error!void {
+            node.going = .left;
+
+            if (node.inner.left) |left| {
+                try self.path.push(try GoingNode(T).new(self.allocator, left)); 
+            }
+
+            try self.move(self);
+        }
+
+        fn goSelf(node: *GoingNode(T)) void {
+            node.going = .self;
+        }
+
+        fn goRight(self: *Self, node: *GoingNode(T)) Allocator.Error!void {
+            node.going = .right;
+
+            if (node.inner.right) |right| {
+                try self.path.push(try GoingNode(T).new(self.allocator, right)); 
+            }
+
+            try self.move(self);
+        }
+
+        fn goUp(self: *Self, node: *GoingNode(T)) Allocator.Error!void {
+            _ = self.path.pop();
+            self.allocator.destroy(node);
+
+            try self.move(self);
         }
     };
 }
@@ -274,7 +201,7 @@ const testVisit: Visit(u8, TestContext) = struct {
     }
 }.f;
 
-test PreOrderIterator {
+test "pre" {
     var left_right = TestNode { .value = 2 };
     var left = TestNode { .value = 7, .right = &left_right };
 
@@ -287,7 +214,7 @@ test PreOrderIterator {
         .right = &right,
     };
 
-    var iter = PreOrderIterator(u8).init(testing.allocator, &manyNodes);
+    var iter = DepthFirstIterator(u8).init(testing.allocator, &manyNodes, .pre);
     defer iter.deinit();
 
     try testing.expectEqual(null, iter.curr());
@@ -311,7 +238,7 @@ test PreOrderIterator {
     try testing.expectEqual(null, iter.curr());
 }
 
-test InOrderIterator {
+test "in" {
     var left_right = TestNode { .value = 2 };
     var left = TestNode { .value = 7, .right = &left_right };
 
@@ -324,7 +251,7 @@ test InOrderIterator {
         .right = &right,
     };
 
-    var iter = InOrderIterator(u8).init(testing.allocator, &manyNodes);
+    var iter = DepthFirstIterator(u8).init(testing.allocator, &manyNodes, .in);
     defer iter.deinit();
 
     try testing.expectEqual(null, iter.curr());
@@ -348,7 +275,7 @@ test InOrderIterator {
     try testing.expectEqual(null, iter.curr());
 }
 
-test PostOrderIterator {
+test "post" {
     var left_right = TestNode { .value = 2 };
     var left = TestNode { .value = 7, .right = &left_right };
 
@@ -361,7 +288,7 @@ test PostOrderIterator {
         .right = &right,
     };
 
-    var iter = PostOrderIterator(u8).init(testing.allocator, &manyNodes);
+    var iter = DepthFirstIterator(u8).init(testing.allocator, &manyNodes, .post);
     defer iter.deinit();
 
     try testing.expectEqual(null, iter.curr());
