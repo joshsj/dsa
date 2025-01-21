@@ -67,6 +67,63 @@ fn goUp(comptime T: type, iter: anytype, node: *GoingNode(T)) Allocator.Error!vo
 
 /// O(n)
 /// Depth-first
+pub fn PreOrderIterator(comptime T: type) type {
+    return struct {
+        const Self = @This();
+
+        allocator: Allocator,
+        path: Stack(*GoingNode(T)),
+        root: *const BinaryNode(u8),
+        moved: bool = false,
+
+        pub fn init(allocator: Allocator, root: *const BinaryNode(u8)) Self {
+            return Self { 
+                .allocator = allocator,
+                .path = Stack(*GoingNode(T)).init(allocator), 
+                .root = root
+            };
+        }
+
+        pub fn deinit(self: *Self) void {
+            while (self.path.pop()) |node| {
+                self.allocator.destroy(node);
+            }
+
+            self.path.deinit();
+        }
+        
+        pub fn curr(self: Self) ?T {
+            return if (self.moved and self.path.peek() != null) self.path.peek().?.inner.value else null;
+        }
+
+        pub fn next(self: *Self) Allocator.Error!?T {
+            if (!self.moved) {
+                try self.path.push(try GoingNode(T).new(self.allocator, self.root));
+                self.moved = true;
+            }
+
+            try self.move();
+            return self.curr();
+        }
+
+        fn move(self: *Self) Allocator.Error!void {
+            const node = self.path.peek() orelse return;
+
+            if (node.going) |going| {
+                switch (going) {
+                    .self => try goLeft(T, self, node),
+                    .left => try goRight(T, self, node),
+                    .right => try goUp(T, self, node),
+                }
+            } else {
+                goSelf(T, node);
+            }
+        }
+    };
+}
+
+/// O(n)
+/// Depth-first
 pub fn InOrderIterator(comptime T: type) type {
     return struct {
         const Self = @This();
@@ -122,34 +179,61 @@ pub fn InOrderIterator(comptime T: type) type {
     };
 }
 
-pub fn preOrder(
-    comptime TValue: type,
-    comptime TContext: type,
-    node: ?*const BinaryNode(TValue),
-    visit: *const Visit(TValue, TContext),
-    ctx: *TContext
-) !void {
-    if (node) |n| {
-        try visit(n.value, ctx);
-        try preOrder(TValue, TContext, n.left, visit, ctx);
-        try preOrder(TValue, TContext, n.right, visit, ctx);
-    }
-}
-
 /// O(n)
 /// Depth-first
-pub fn postOrder(
-    comptime TValue: type,
-    comptime TContext: type,
-    node: ?*const BinaryNode(TValue),
-    visit: *const Visit(TValue, TContext),
-    ctx: *TContext
-) !void {
-    if (node) |n| {
-        try postOrder(TValue, TContext, n.left, visit, ctx);
-        try postOrder(TValue, TContext, n.right, visit, ctx);
-        try visit(n.value, ctx);
-    }
+pub fn PostOrderIterator(comptime T: type) type {
+    return struct {
+        const Self = @This();
+
+        allocator: Allocator,
+        path: Stack(*GoingNode(T)),
+        root: *const BinaryNode(u8),
+        moved: bool = false,
+
+        pub fn init(allocator: Allocator, root: *const BinaryNode(u8)) Self {
+            return Self { 
+                .allocator = allocator,
+                .path = Stack(*GoingNode(T)).init(allocator), 
+                .root = root
+            };
+        }
+
+        pub fn deinit(self: *Self) void {
+            while (self.path.pop()) |node| {
+                self.allocator.destroy(node);
+            }
+
+            self.path.deinit();
+        }
+        
+        pub fn curr(self: Self) ?T {
+            return if (self.moved and self.path.peek() != null) self.path.peek().?.inner.value else null;
+        }
+
+        pub fn next(self: *Self) Allocator.Error!?T {
+            if (!self.moved) {
+                try self.path.push(try GoingNode(T).new(self.allocator, self.root));
+                self.moved = true;
+            }
+
+            try self.move();
+            return self.curr();
+        }
+
+        fn move(self: *Self) Allocator.Error!void {
+            const node = self.path.peek() orelse return;
+
+            if (node.going) |going| {
+                switch (going) {
+                    .left => try goRight(T, self, node),
+                    .right => goSelf(T, node),
+                    .self => try goUp(T, self, node),
+                }
+            } else {
+                try goLeft(T, self, node);
+            }
+        }
+    };
 }
 
 // TODO: iterators!
@@ -190,24 +274,41 @@ const testVisit: Visit(u8, TestContext) = struct {
     }
 }.f;
 
-test preOrder {
-    var left = TestNode { .value = 7 };
-    var right = TestNode { .value = 1 };
+test PreOrderIterator {
+    var left_right = TestNode { .value = 2 };
+    var left = TestNode { .value = 7, .right = &left_right };
 
-    var manyNodes = TestNode {
+    var right_left = TestNode { .value = 5 };
+    var right = TestNode { .value = 1, .left = &right_left };
+
+    const manyNodes = TestNode {
         .value = 4,
         .left = &left,
         .right = &right,
     };
 
-    var context = TestContext { .values = try ArrayList(u8).init(testing.allocator) };
-    defer context.values.deinit();
+    var iter = PreOrderIterator(u8).init(testing.allocator, &manyNodes);
+    defer iter.deinit();
 
-    const expected = [_]u8 { 4, 7, 1, };
+    try testing.expectEqual(null, iter.curr());
 
-    try preOrder(u8, TestContext, &manyNodes, &testVisit, &context);
+    try testing.expectEqual(4, iter.next());
+    try testing.expectEqual(4, iter.curr());
 
-    try testing.expectEqualSlices(u8, &expected, context.values.slice());
+    try testing.expectEqual(7, iter.next());
+    try testing.expectEqual(7, iter.curr());
+
+    try testing.expectEqual(2, iter.next());
+    try testing.expectEqual(2, iter.curr());
+
+    try testing.expectEqual(1, iter.next());
+    try testing.expectEqual(1, iter.curr());
+
+    try testing.expectEqual(5, iter.next());
+    try testing.expectEqual(5, iter.curr());
+
+    try testing.expectEqual(null, iter.next());
+    try testing.expectEqual(null, iter.curr());
 }
 
 test InOrderIterator {
@@ -247,26 +348,43 @@ test InOrderIterator {
     try testing.expectEqual(null, iter.curr());
 }
 
-test postOrder {
-    var left = TestNode { .value = 7 };
-    var right = TestNode { .value = 1 };
+test PostOrderIterator {
+    var left_right = TestNode { .value = 2 };
+    var left = TestNode { .value = 7, .right = &left_right };
 
-    var manyNodes = TestNode {
+    var right_left = TestNode { .value = 5 };
+    var right = TestNode { .value = 1, .left = &right_left };
+
+    const manyNodes = TestNode {
         .value = 4,
         .left = &left,
         .right = &right,
     };
 
-    var context = TestContext { .values = try ArrayList(u8).init(testing.allocator) };
-    defer context.values.deinit();
+    var iter = PostOrderIterator(u8).init(testing.allocator, &manyNodes);
+    defer iter.deinit();
 
-    const expected = [_]u8 { 7, 1, 4 };
+    try testing.expectEqual(null, iter.curr());
 
-    try postOrder(u8, TestContext, &manyNodes, &testVisit, &context);
+    try testing.expectEqual(2, iter.next());
+    try testing.expectEqual(2, iter.curr());
 
-    try testing.expectEqualSlices(u8, &expected, context.values.slice());
+    try testing.expectEqual(7, iter.next());
+    try testing.expectEqual(7, iter.curr());
+
+    try testing.expectEqual(5, iter.next());
+    try testing.expectEqual(5, iter.curr());
+
+    try testing.expectEqual(1, iter.next());
+    try testing.expectEqual(1, iter.curr());
+
+    try testing.expectEqual(4, iter.next());
+    try testing.expectEqual(4, iter.curr());
+
+    try testing.expectEqual(null, iter.next());
+    try testing.expectEqual(null, iter.curr());
 }
- 
+
 test breadthFirst {
     var left_right = TestNode { .value = 2 };
     var left = TestNode { .value = 7, .right = &left_right };
