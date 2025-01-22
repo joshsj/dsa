@@ -47,6 +47,8 @@ pub fn DepthFirstIterator(comptime T: type) type {
                 .allocator = allocator,
                 .path = Stack(*GoingNode(T)).init(allocator), 
                 .root = root,
+                // TODO: data-driven logic would be cool
+                // instead of the 3 separate methods
                 .move = switch (order) {
                     .pre => &movePreOrder,
                     .in => &moveInOrder,
@@ -208,13 +210,13 @@ test "pre" {
     var right_left = TestNode { .value = 5 };
     var right = TestNode { .value = 1, .left = &right_left };
 
-    const manyNodes = TestNode {
+    const root = TestNode {
         .value = 4,
         .left = &left,
         .right = &right,
     };
 
-    var iter = DepthFirstIterator(u8).init(testing.allocator, &manyNodes, .pre);
+    var iter = DepthFirstIterator(u8).init(testing.allocator, &root, .pre);
     defer iter.deinit();
 
     var sink = try ArrayList(u8).fromIterator(testing.allocator, &iter);
@@ -233,13 +235,13 @@ test "in" {
     var right_left = TestNode { .value = 5 };
     var right = TestNode { .value = 1, .left = &right_left };
 
-    const manyNodes = TestNode {
+    const root = TestNode {
         .value = 4,
         .left = &left,
         .right = &right,
     };
 
-    var iter = DepthFirstIterator(u8).init(testing.allocator, &manyNodes, .in);
+    var iter = DepthFirstIterator(u8).init(testing.allocator, &root, .in);
     defer iter.deinit();
 
     var sink = try ArrayList(u8).fromIterator(testing.allocator, &iter);
@@ -258,13 +260,13 @@ test "post" {
     var right_left = TestNode { .value = 5 };
     var right = TestNode { .value = 1, .left = &right_left };
 
-    const manyNodes = TestNode {
+    const root = TestNode {
         .value = 4,
         .left = &left,
         .right = &right,
     };
 
-    var iter = DepthFirstIterator(u8).init(testing.allocator, &manyNodes, .post);
+    var iter = DepthFirstIterator(u8).init(testing.allocator, &root, .post);
     defer iter.deinit();
 
     var sink = try ArrayList(u8).fromIterator(testing.allocator, &iter);
@@ -283,13 +285,13 @@ test BreadthFirstIterator {
     var right_left = TestNode { .value = 5 };
     var right = TestNode { .value = 1, .left = &right_left };
 
-    const manyNodes = TestNode {
+    const root = TestNode {
         .value = 4,
         .left = &left,
         .right = &right,
     };
 
-    var iter = BreadthFirstIterator(u8).init(testing.allocator, &manyNodes);
+    var iter = BreadthFirstIterator(u8).init(testing.allocator, &root);
     defer iter.deinit();
 
     var sink = try ArrayList(u8).fromIterator(testing.allocator, &iter);

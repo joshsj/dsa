@@ -3,7 +3,7 @@ const testing = std.testing;
 const mem = std.mem;
 const Allocator = std.mem.Allocator;
 
-const SliceIterator = @import("../iterator.zig").SliceIterator;
+const SliceIterator = @import("../algorithms/slice/iterator.zig").SliceIterator;
 
 // TODO std lib optimises growth with resize()
 pub fn ArrayList(comptime T: type) type {
@@ -39,6 +39,7 @@ pub fn ArrayList(comptime T: type) type {
 
         pub fn fromIterator(allocator: Allocator, iter: anytype) Allocator.Error!Self {
             var self = try init(allocator);
+            errdefer self.deinit();
 
             while (try iter.next()) |curr| {
                 try self.addLast(curr);

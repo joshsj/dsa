@@ -3,7 +3,7 @@ test {
     _ = @import("algorithms/slice/sort.zig");
     _ = @import("algorithms/slice/search.zig");
 
-    _ = @import("algorithms/tree/traverse.zig");
+    _ = @import("algorithms/tree/iterator.zig");
 
     _ = @import("structures/array-list.zig");
     _ = @import("structures/binary-node.zig");
