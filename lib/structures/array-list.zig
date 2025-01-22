@@ -40,7 +40,7 @@ pub fn ArrayList(comptime T: type) type {
         pub fn fromIterator(allocator: Allocator, iter: anytype) Allocator.Error!Self {
             var self = try init(allocator);
 
-            while (iter.next()) |curr| {
+            while (try iter.next()) |curr| {
                 try self.addLast(curr);
             }
 

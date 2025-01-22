@@ -2,6 +2,7 @@ const std = @import("std");
 const testing = std.testing;
 const Allocator = std.mem.Allocator;
 
+const ArrayList = @import("../../structures/array-list.zig").ArrayList;
 const BinaryNode = @import("../../structures/binary-node.zig").BinaryNode;
 const Queue = @import("../../structures/queue.zig").Queue;
 const Stack = @import("../../structures/stack.zig").Stack;
@@ -33,13 +34,13 @@ pub fn DepthFirstIterator(comptime T: type) type {
 
         allocator: Allocator,
         path: Stack(*GoingNode(T)),
-        root: *const BinaryNode(u8),
+        root: *const BinaryNode(T),
         move: *const fn(*Self) Allocator.Error!void,
         moved: bool = false,
 
         pub fn init(
             allocator: Allocator, 
-            root: *const BinaryNode(u8),
+            root: *const BinaryNode(T),
             order: Order
         ) Self {
             return Self { 
@@ -158,10 +159,10 @@ pub fn BreadthFirstIterator(comptime T: type) type {
 
         allocator: Allocator,
         queue: Queue(*const BinaryNode(T)),
-        root: *const BinaryNode(u8),
+        root: *const BinaryNode(T),
         moved: bool = false,
 
-        pub fn init(allocator: Allocator, root: *const BinaryNode(u8),) Self {
+        pub fn init(allocator: Allocator, root: *const BinaryNode(T),) Self {
             return Self { 
                 .allocator = allocator,
                 .queue = Queue(*const BinaryNode(T)).init(allocator), 
@@ -216,24 +217,12 @@ test "pre" {
     var iter = DepthFirstIterator(u8).init(testing.allocator, &manyNodes, .pre);
     defer iter.deinit();
 
-    try testing.expectEqual(null, iter.curr());
+    var sink = try ArrayList(u8).fromIterator(testing.allocator, &iter);
+    defer sink.deinit();
 
-    try testing.expectEqual(4, iter.next());
-    try testing.expectEqual(4, iter.curr());
+    const expected = [_]u8 { 4, 7, 2, 1, 5, };
 
-    try testing.expectEqual(7, iter.next());
-    try testing.expectEqual(7, iter.curr());
-
-    try testing.expectEqual(2, iter.next());
-    try testing.expectEqual(2, iter.curr());
-
-    try testing.expectEqual(1, iter.next());
-    try testing.expectEqual(1, iter.curr());
-
-    try testing.expectEqual(5, iter.next());
-    try testing.expectEqual(5, iter.curr());
-
-    try testing.expectEqual(null, iter.next());
+    try testing.expectEqualSlices(u8, &expected, sink.slice());
     try testing.expectEqual(null, iter.curr());
 }
 
@@ -253,24 +242,12 @@ test "in" {
     var iter = DepthFirstIterator(u8).init(testing.allocator, &manyNodes, .in);
     defer iter.deinit();
 
-    try testing.expectEqual(null, iter.curr());
+    var sink = try ArrayList(u8).fromIterator(testing.allocator, &iter);
+    defer sink.deinit();
 
-    try testing.expectEqual(7, iter.next());
-    try testing.expectEqual(7, iter.curr());
+    const expected = [_]u8 { 7, 2, 4, 5, 1, };
 
-    try testing.expectEqual(2, iter.next());
-    try testing.expectEqual(2, iter.curr());
-
-    try testing.expectEqual(4, iter.next());
-    try testing.expectEqual(4, iter.curr());
-
-    try testing.expectEqual(5, iter.next());
-    try testing.expectEqual(5, iter.curr());
-
-    try testing.expectEqual(1, iter.next());
-    try testing.expectEqual(1, iter.curr());
-
-    try testing.expectEqual(null, iter.next());
+    try testing.expectEqualSlices(u8, &expected, sink.slice());
     try testing.expectEqual(null, iter.curr());
 }
 
@@ -290,24 +267,12 @@ test "post" {
     var iter = DepthFirstIterator(u8).init(testing.allocator, &manyNodes, .post);
     defer iter.deinit();
 
-    try testing.expectEqual(null, iter.curr());
+    var sink = try ArrayList(u8).fromIterator(testing.allocator, &iter);
+    defer sink.deinit();
 
-    try testing.expectEqual(2, iter.next());
-    try testing.expectEqual(2, iter.curr());
+    const expected = [_]u8 { 2, 7, 5, 1, 4};
 
-    try testing.expectEqual(7, iter.next());
-    try testing.expectEqual(7, iter.curr());
-
-    try testing.expectEqual(5, iter.next());
-    try testing.expectEqual(5, iter.curr());
-
-    try testing.expectEqual(1, iter.next());
-    try testing.expectEqual(1, iter.curr());
-
-    try testing.expectEqual(4, iter.next());
-    try testing.expectEqual(4, iter.curr());
-
-    try testing.expectEqual(null, iter.next());
+    try testing.expectEqualSlices(u8, &expected, sink.slice());
     try testing.expectEqual(null, iter.curr());
 }
 
@@ -327,24 +292,12 @@ test BreadthFirstIterator {
     var iter = BreadthFirstIterator(u8).init(testing.allocator, &manyNodes);
     defer iter.deinit();
 
-    try testing.expectEqual(null, iter.curr());
+    var sink = try ArrayList(u8).fromIterator(testing.allocator, &iter);
+    defer sink.deinit();
 
-    try testing.expectEqual(4, iter.next());
-    try testing.expectEqual(4, iter.curr());
+    const expected = [_]u8 { 4, 7, 1, 2, 5, };
 
-    try testing.expectEqual(7, iter.next());
-    try testing.expectEqual(7, iter.curr());
-
-    try testing.expectEqual(1, iter.next());
-    try testing.expectEqual(1, iter.curr());
-
-    try testing.expectEqual(2, iter.next());
-    try testing.expectEqual(2, iter.curr());
-
-    try testing.expectEqual(5, iter.next());
-    try testing.expectEqual(5, iter.curr());
-
-    try testing.expectEqual(null, iter.next());
+    try testing.expectEqualSlices(u8, &expected, sink.slice());
     try testing.expectEqual(null, iter.curr());
 }
 

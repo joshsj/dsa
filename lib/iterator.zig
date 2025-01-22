@@ -16,7 +16,7 @@ pub fn SliceIterator(comptime T: type) type {
             return if (self.slice.len > 0 and self.moved) self.slice[0] else null;
         }
 
-        pub fn next(self: *Self) ?T {
+        pub fn next(self: *Self) !?T {
             if (self.moved) {
                 self.slice = self.slice[1..];
             } else {
