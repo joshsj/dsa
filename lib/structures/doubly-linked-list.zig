@@ -6,7 +6,7 @@ pub fn DoublyLinkedList(comptime T: type) type {
     return struct {
         const Self = @This();
 
-        const Node = struct {
+        pub const Node = struct {
             value: T,
             next: ?*Node,
             prev: ?*Node,

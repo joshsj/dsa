@@ -5,6 +5,8 @@ test {
 
     _ = @import("algorithms/tree/iterator.zig");
 
+    _ = @import("algorithms/linked/iterator.zig");
+
     _ = @import("structures/array-list.zig");
     _ = @import("structures/binary-node.zig");
     _ = @import("structures/doubly-linked-list.zig");
