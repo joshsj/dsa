@@ -2,6 +2,8 @@ const std = @import("std");
 const testing = std.testing;
 const Allocator = std.mem.Allocator;
 
+const SinglyLinkedListIterator = @import("../algorithms/linked/iterator.zig").SinglyLinkedListIterator;
+
 pub fn SinglyLinkedList(comptime T: type) type {
     return struct {
         const Self = @This();
@@ -70,6 +72,10 @@ pub fn SinglyLinkedList(comptime T: type) type {
             }
 
             return curr;
+        }
+
+        pub fn iterator(self: Self) SinglyLinkedListIterator(T) {
+            return SinglyLinkedListIterator(T).new(self);
         }
 
         /// O(n)

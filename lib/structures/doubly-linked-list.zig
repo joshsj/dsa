@@ -2,6 +2,8 @@ const std = @import("std");
 const testing = std.testing;
 const Allocator = std.mem.Allocator;
 
+const DoublyLinkedListIterator = @import("../algorithms/linked/iterator.zig").DoublyLinkedListIterator;
+
 pub fn DoublyLinkedList(comptime T: type) type {
     return struct {
         const Self = @This();
@@ -174,6 +176,10 @@ pub fn DoublyLinkedList(comptime T: type) type {
             }
 
             return curr;
+        }
+
+        pub fn iterator(self: Self) DoublyLinkedListIterator(T) {
+            return DoublyLinkedListIterator(T).new(self);
         }
 
         /// O(n)
