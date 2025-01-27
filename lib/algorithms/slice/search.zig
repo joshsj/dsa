@@ -1,7 +1,7 @@
 const std = @import("std");
 const testing = std.testing;
 
-const common = @import("../common.zig");
+const common = @import("../../common.zig");
 const Compare = common.Compare;
 const defaultCompare = common.defaultCompare;
 
