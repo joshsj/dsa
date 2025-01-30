@@ -56,7 +56,7 @@ test "given some items when binary(exists) then returns index" {
     try testing.expectEqual(2, binary(u8, &defaultCompare(u8), &items, 4));
 }
 
-test "given some items when binary(not exists) then returns index" {
+test "given some items when binary(not exists) then returns null" {
     var items = [_]u8{ 4, 7, 6, 3, 6, 5, 2, 8, 6, 9, 5};
 
     sort.quick(u8, &defaultCompare(u8), &items);

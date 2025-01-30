@@ -4,6 +4,7 @@ test {
     _ = @import("algorithms/slice/search.zig");
 
     _ = @import("algorithms/tree/iterator.zig");
+    _ = @import("algorithms/tree/search.zig");
 
     _ = @import("algorithms/linked/iterator.zig");
 
