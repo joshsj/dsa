@@ -4,7 +4,6 @@ const testing = std.testing;
 const BinaryNode = @import("../../structures/binary-node.zig").BinaryNode;
 const BinarySearchTree = @import("../../structures/binary-search-tree.zig").BinarySearchTree;
 
-
 const common = @import("../../common.zig");
 const Compare = common.Compare;
 const defaultCompare = common.defaultCompare;
@@ -13,9 +12,9 @@ const defaultCompare = common.defaultCompare;
 pub fn binary(
     comptime T: type,
     compare: *const Compare(T),
-    haystack: ?*const BinaryNode(T),
+    haystack: ?*BinaryNode(T),
     needle: T
-) ?*const BinaryNode(T) {
+) ?*BinaryNode(T) {
     return if (haystack) |node| switch (compare(needle, node.value)) {
         .eq => node,
         .lt => binary(T, compare, node.left, needle),

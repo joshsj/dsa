@@ -14,17 +14,62 @@ const common = @import("../common.zig");
 const Compare = common.Compare;
 const defaultCompare = common.defaultCompare;
 
-fn addOrdered(comptime T: type, maybeCurr: ?*Node(T), node: *Node(T), compare: *const Compare(T)) *Node(T) {
+// Returns a ptr to maybeCurr
+// Allows recursive function to (effectively) assign its parent without a reference to it
+fn addOrdered(comptime T: type, self: BinarySearchTree(T), maybeCurr: ?*Node(T), node: *Node(T)) *Node(T) {
     if (maybeCurr) |curr| {
-        if (compare(node.value, curr.value) == .gt) {
-            curr.right = addOrdered(T, curr.right, node, compare);
+        if (self.compare(node.value, curr.value) == .gt) {
+            curr.right = addOrdered(T, self, curr.right, node);
         } else {
-            curr.left = addOrdered(T, curr.left, node, compare);
+            curr.left = addOrdered(T, self, curr.left, node);
         }
 
         return curr;
     } else {
         return node;
+    }
+}
+
+fn removeOrdered(comptime T: type, self: BinarySearchTree(T), maybeCurr: ?*Node(T), value: T) ?*Node(T) {
+    if (maybeCurr) |curr| {
+        const order = self.compare(value, curr.value);
+
+        if (order == .lt) {
+            curr.left = removeOrdered(T, self, curr.left, value);
+            return curr;
+        } 
+
+        if (order == .gt) {
+            curr.right = removeOrdered(T, self, curr.right, value);
+            return curr;
+        }
+
+        if (curr.left != null and curr.right != null) {
+            curr.value = findMin(T, curr.right.?).value;
+            curr.right = removeMin(T, self, curr.right.?);
+            return curr;
+        }
+
+        defer self.allocator.destroy(curr);
+        return curr.left orelse curr.right;
+    } else {
+        return null;
+    }
+}
+
+fn findMin(comptime T: type, root: *Node(T)) *Node(T) {
+    var succ = root;
+    while (succ.left) |next_succ| { succ = next_succ; }
+    return succ;
+}
+
+fn removeMin(comptime T: type, self: BinarySearchTree(T), min: *Node(T)) ?*Node(T) {
+    if (min.left) |left| {
+        min.left = removeMin(T, self, left);
+        return min;
+    } else {
+        defer self.allocator.destroy(min);
+        return min.right;
     }
 }
 
@@ -69,11 +114,15 @@ pub fn BinarySearchTree(comptime T: type) type {
             node.left = null;
             node.right = null;
 
-            self.root = addOrdered(T, self.root, node, self.compare);
+            self.root = addOrdered(T, self.*, self.root, node);
         }
 
-        pub fn find(self: Self, needle: T) ?*const Node {
-            return search.binary(T, self.compare, self.root, needle);
+        pub fn has(self: Self, needle: T) bool {
+            return search.binary(T, self.compare, self.root, needle) != null;
+        }
+
+        pub fn remove(self: *Self, value: T) void {
+            self.root = removeOrdered(T, self.*, self.root, value);
         }
 
         pub fn depthFirstIterator(
@@ -91,17 +140,31 @@ pub fn BinarySearchTree(comptime T: type) type {
     };
 }
 
-test "add" {
+///     5
+///   /   \
+///  3     7
+/// / \   / \ 
+///1   4 6   8
+/// \
+///  2
+fn createTree() !BinarySearchTree(u8) {
     var tree = BinarySearchTree(u8).init(testing.allocator);
-    defer tree.deinit();
 
     try tree.add(5);
     try tree.add(7);
     try tree.add(3);
     try tree.add(1);
     try tree.add(2);
-    try tree.add(2);
     try tree.add(8);
+    try tree.add(6);
+    try tree.add(4);
+
+    return tree;
+}
+
+test "add" {
+    var tree = try createTree();
+    defer tree.deinit();
 
     // In-order traversal perserves order
     var iter = tree.depthFirstIterator(.in);
@@ -110,7 +173,31 @@ test "add" {
     var sink = try ArrayList(u8).fromIterator(testing.allocator, &iter);
     defer sink.deinit();
 
-    const expected = [_]u8 { 1, 2, 2, 3, 5, 7, 8 };
+    const expected = [_]u8 { 1, 2, 3, 4, 5, 6, 7, 8 };
+
+    try testing.expectEqualSlices(u8, &expected, sink.slice());
+}
+
+test "remove" {
+    var tree = try createTree();
+    defer tree.deinit();
+
+    // No children
+    tree.remove(2);
+
+    // Two children
+    tree.remove(7);
+
+    // One child
+    tree.remove(8);
+
+    var iter = tree.depthFirstIterator(.in);
+    defer iter.deinit();
+
+    var sink = try ArrayList(u8).fromIterator(testing.allocator, &iter);
+    defer sink.deinit();
+
+    const expected = [_]u8 { 1, 3, 4, 5, 6, };
 
     try testing.expectEqualSlices(u8, &expected, sink.slice());
 }
