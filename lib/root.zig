@@ -12,6 +12,7 @@ test {
     _ = @import("structures/binary-node.zig");
     _ = @import("structures/binary-search-tree.zig");
     _ = @import("structures/doubly-linked-list.zig");
+    _ = @import("structures/heap.zig");
     _ = @import("structures/singly-linked-list.zig");
     _ = @import("structures/queue.zig");
     _ = @import("structures/stack.zig");

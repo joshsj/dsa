@@ -5,8 +5,6 @@ const Allocator = std.mem.Allocator;
 const ArrayList = @import("../structures/array-list.zig").ArrayList;
 
 const Node = @import("binary-node.zig").BinaryNode;
-const DepthFirstIterator = @import("../algorithms/tree/iterator.zig").DepthFirstIterator;
-const BreadthFirstIterator = @import("../algorithms/tree/iterator.zig").BreadthFirstIterator;
 
 const search = @import("../algorithms/tree/search.zig");
 
@@ -124,19 +122,6 @@ pub fn BinarySearchTree(comptime T: type) type {
         pub fn remove(self: *Self, value: T) void {
             self.root = removeOrdered(T, self.*, self.root, value);
         }
-
-        pub fn depthFirstIterator(
-            self: Self,
-            order: DepthFirstIterator(T).Order
-        ) DepthFirstIterator(T) {
-            // TODO: return empty iterator when self.root is null
-            return self.root.?.depthFirstIterator(self.allocator, order);
-        }
-
-        pub fn breadthFirstIterator(self: Self) BreadthFirstIterator(T) {
-            // TODO: return empty iterator when self.root is null
-            return self.root.?.breadthFirstIterator(self.allocator);
-        }
     };
 }
 
@@ -167,7 +152,7 @@ test "add" {
     defer tree.deinit();
 
     // In-order traversal perserves order
-    var iter = tree.depthFirstIterator(.in);
+    var iter = tree.root.?.depthFirstIterator(testing.allocator, .in);
     defer iter.deinit();
 
     var sink = try ArrayList(u8).fromIterator(testing.allocator, &iter);
@@ -191,7 +176,7 @@ test "remove" {
     // One child
     tree.remove(8);
 
-    var iter = tree.depthFirstIterator(.in);
+    var iter = tree.root.?.depthFirstIterator(testing.allocator, .in);
     defer iter.deinit();
 
     var sink = try ArrayList(u8).fromIterator(testing.allocator, &iter);
