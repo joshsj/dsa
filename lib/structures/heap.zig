@@ -6,6 +6,7 @@ const Allocator = mem.Allocator;
 const ArrayList = @import("./array-list.zig").ArrayList;
 
 const common = @import("../common.zig");
+const CompareOrder = common.CompareOrder;
 const Compare = common.Compare;
 const defaultCompare = common.defaultCompare;
 
@@ -21,22 +22,30 @@ fn rightIndex(i: usize) usize {
     return (2 * i) + 2;
 }
 
-// TODO: max heap also
-pub fn MinHeap(comptime T: type) type {
+pub fn Heap(comptime T: type) type {
     return struct {
         const Self = @This();
 
+        const Order = enum { min, max };
+
         items: ArrayList(T),
         compare: *const Compare(T),
+        order: Order,
+        compareOrder: CompareOrder,
 
-        pub fn init(allocator: Allocator) Allocator.Error!Self {
-            return initCompare(allocator, defaultCompare(T));
+        pub fn init(allocator: Allocator, order: Order) Allocator.Error!Self {
+            return initCompare(allocator, order, defaultCompare(T));
         }
 
-        pub fn initCompare(allocator: Allocator, compare: *const Compare(T)) Allocator.Error!Self {
+        pub fn initCompare(allocator: Allocator, order: Order, compare: *const Compare(T)) Allocator.Error!Self {
             return Self { 
                 .items = try ArrayList(T).init(allocator),
                 .compare = compare,
+                .order = order,
+                .compareOrder = switch (order) {
+                    .min => .gt,
+                    .max => .lt
+                }
             };
         }
 
@@ -55,14 +64,14 @@ pub fn MinHeap(comptime T: type) type {
                 return self.items.removeLast();
             }
 
-            const max = self.items.removeLast().?;
+            const last = self.items.removeLast().?;
             const items = self.items.slice();
-            const min = items[0];
+            const first = items[0];
 
-            items[0] = max;
+            items[0] = last;
             self.sink(0);
 
-            return min;
+            return first;
         }
 
         fn swim(self: Self, curr_i: usize) void {
@@ -74,7 +83,7 @@ pub fn MinHeap(comptime T: type) type {
 
             const items = self.items.slice();
             
-            if (self.compare(items[parent_i], items[curr_i]) == .gt) {
+            if (self.compare(items[parent_i], items[curr_i]) == self.compareOrder) {
                 mem.swap(T, &items[parent_i], &items[curr_i]);
             }
 
@@ -82,18 +91,18 @@ pub fn MinHeap(comptime T: type) type {
         }
 
         fn sink(self: Self, curr_i: usize) void {
-            const min_child_i = self.minChildIndex(curr_i) orelse return;
+            const next_child_i = self.nextChildIndex(curr_i) orelse return;
 
             const items = self.items.slice();
 
-            if (self.compare(items[curr_i], items[min_child_i]) == .gt) {
-                mem.swap(T, &items[curr_i], &items[min_child_i]);
+            if (self.compare(items[curr_i], items[next_child_i]) == self.compareOrder) {
+                mem.swap(T, &items[curr_i], &items[next_child_i]);
 
-                self.sink(min_child_i);
+                self.sink(next_child_i);
             }
         }
 
-        fn minChildIndex(self: Self, i: usize) ?usize {
+        fn nextChildIndex(self: Self, i: usize) ?usize {
             const left_i = leftIndex(i);
             const right_i = rightIndex(i);
 
@@ -107,23 +116,23 @@ pub fn MinHeap(comptime T: type) type {
 
             const items = self.items.slice();
 
-            return switch (self.compare(items[left_i], items[right_i])) {
-                .lt, .eq => left_i,
-                .gt => right_i
-            };
+            return
+                if (self.compare(items[left_i], items[right_i]) == self.compareOrder) right_i
+                else left_i;
         }
     };
 }
 
-///         1
-///       /   \
-///     2       5
-///    / \     / \
-///   4   3   8   6
-///  /
-/// 7
-fn createHeap() Allocator.Error!MinHeap(u8) {
-    var heap = try MinHeap(u8).init(testing.allocator);
+///        Min               Max     
+///         1                 8      
+///       /   \             /   \    
+///     2       5         5       7  
+///    / \     / \       / \     / \ 
+///   4   3   8   6     4   2   3   6
+///  /                 /             
+/// 7                 1              
+fn createHeap(order: Heap(u8).Order) Allocator.Error!Heap(u8) {
+    var heap = try Heap(u8).init(testing.allocator, order);
 
     try heap.add(5);
     try heap.add(7);
@@ -137,8 +146,13 @@ fn createHeap() Allocator.Error!MinHeap(u8) {
     return heap;
 }
 
-test "add" {
-    var heap = try createHeap();
+fn expectRemove(heap: *Heap(u8), removed: ?u8, remaining: []const u8) !void {
+    try testing.expectEqual(removed, heap.remove());
+    try testing.expectEqualSlices(u8, remaining, heap.items.slice());
+}
+
+test ".min add()" {
+    var heap = try createHeap(.min);
     defer heap.deinit();
 
     const expected = [_]u8 { 1, 2, 5, 4, 3, 8, 6, 7, };
@@ -146,13 +160,8 @@ test "add" {
     try testing.expectEqualSlices(u8, &expected, heap.items.slice());
 }
 
-fn expectRemove(heap: *MinHeap(u8), removed: ?u8, remaining: []const u8) !void {
-    try testing.expectEqual(removed, heap.remove());
-    try testing.expectEqualSlices(u8, remaining, heap.items.slice());
-}
-
-test "remove" {
-    var heap = try createHeap();
+test ".min remove()" {
+    var heap = try createHeap(.min);
     defer heap.deinit();
 
     try expectRemove(&heap, 1, &[_]u8{  2, 3, 5, 4, 7, 8, 6, });
@@ -172,5 +181,37 @@ test "remove" {
     try expectRemove(&heap, 8, &[_]u8{});
 
     try expectRemove(&heap, null, &[_]u8{});
+}
+
+test "max add()" {
+    var heap = try createHeap(.max);
+    defer heap.deinit();
+
+    const expected = [_]u8 { 8, 5, 7, 4, 2, 3, 6, 1, };
+
+    try testing.expectEqualSlices(u8, &expected, heap.items.slice());
+}
+
+test "max remove()" {
+    var heap = try createHeap(.max);
+    defer heap.deinit();
+
+    try expectRemove(&heap, 8, &[_]u8 { 7, 5, 6, 4, 2, 3, 1, });
+
+    try expectRemove(&heap, 7, &[_]u8 { 6, 5, 3, 4, 2, 1, });
+
+    try expectRemove(&heap, 6, &[_]u8 { 5, 4, 3, 1, 2, });
+
+    try expectRemove(&heap, 5, &[_]u8 { 4, 2, 3, 1, });
+    
+    try expectRemove(&heap, 4, &[_]u8 { 3, 2, 1, });
+
+    try expectRemove(&heap, 3, &[_]u8 { 2, 1, });
+    
+    try expectRemove(&heap, 2, &[_]u8 { 1, });
+
+    try expectRemove(&heap, 1, &[0]u8{});
+
+    try expectRemove(&heap, null, &[0]u8{});
 }
 
