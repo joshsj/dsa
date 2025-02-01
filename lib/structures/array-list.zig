@@ -162,7 +162,7 @@ pub fn ArrayList(comptime T: type) type {
             return self.items[0..self.len];
         }
 
-        pub fn iterator(self: Self) SliceIterator {
+        pub fn iterator(self: Self) SliceIterator(T) {
             return SliceIterator(T).new(self.slice());
         }
 
