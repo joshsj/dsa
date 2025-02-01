@@ -37,7 +37,11 @@ pub fn Heap(comptime T: type) type {
             return initCompare(allocator, order, defaultCompare(T));
         }
 
-        pub fn initCompare(allocator: Allocator, order: Order, compare: *const Compare(T)) Allocator.Error!Self {
+        pub fn initCompare(
+            allocator: Allocator,
+            order: Order,
+            compare: *const Compare(T)
+        ) Allocator.Error!Self {
             return Self { 
                 .items = try ArrayList(T).init(allocator),
                 .compare = compare,
@@ -85,9 +89,9 @@ pub fn Heap(comptime T: type) type {
             
             if (self.compare(items[parent_i], items[curr_i]) == self.compareOrder) {
                 mem.swap(T, &items[parent_i], &items[curr_i]);
-            }
 
-            swim(self, parent_i);
+                self.swim(parent_i);
+            }
         }
 
         fn sink(self: Self, curr_i: usize) void {
