@@ -1,5 +1,3 @@
-# Heading 1
-
 ## Heading 2
 
 ### Heading 3
@@ -16,6 +14,11 @@ math {{#math}}O(n){{/math}}
 inline `code`
 
 ```zig
+// block code
 fn foo() void {}
+```
+
+```zig
+{{#include}}@lib/common/slice-iterator.zig{{/include}}
 ```
 
