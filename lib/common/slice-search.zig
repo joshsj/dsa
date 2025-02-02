@@ -1,11 +1,11 @@
 const std = @import("std");
 const testing = std.testing;
 
-const common = @import("../../common.zig");
+const common = @import("compare.zig");
 const Compare = common.Compare;
 const defaultCompare = common.defaultCompare;
 
-const sort = @import("sort.zig");
+const sort = @import("slice-sort.zig");
 
 /// O(log(n))
 pub fn binary(

@@ -1,10 +1,10 @@
 const std = @import("std");
 const testing = std.testing;
 
-const BinaryNode = @import("../../structures/binary-node.zig").BinaryNode;
-const BinarySearchTree = @import("../../structures/binary-search-tree.zig").BinarySearchTree;
+const BinaryNode = @import("binary-node.zig").BinaryNode;
+const BinarySearchTree = @import("binary-search-tree.zig").BinarySearchTree;
 
-const common = @import("../../common.zig");
+const common = @import("common.zig");
 const Compare = common.Compare;
 const defaultCompare = common.defaultCompare;
 

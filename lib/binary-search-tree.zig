@@ -2,19 +2,18 @@ const std = @import("std");
 const testing = std.testing;
 const Allocator = std.mem.Allocator;
 
-const ArrayList = @import("../array-list.zig").ArrayList;
+const ArrayList = @import("array-list.zig").ArrayList;
 
-const Node = @import("binary-node.zig").BinaryNode;
+const BinaryNode = @import("binary-node.zig").BinaryNode;
+const search = @import("binary-node.search.zig");
 
-const search = @import("../algorithms/tree/search.zig");
-
-const common = @import("../common.zig");
+const common = @import("common.zig");
 const Compare = common.Compare;
 const defaultCompare = common.defaultCompare;
 
 // Returns a ptr to maybeCurr
 // Allows recursive function to (effectively) assign its parent without a reference to it
-fn addOrdered(comptime T: type, self: BinarySearchTree(T), maybeCurr: ?*Node(T), node: *Node(T)) *Node(T) {
+fn addOrdered(comptime T: type, self: BinarySearchTree(T), maybeCurr: ?*BinaryNode(T), node: *BinaryNode(T)) *BinaryNode(T) {
     if (maybeCurr) |curr| {
         if (self.compare(node.value, curr.value) == .gt) {
             curr.right = addOrdered(T, self, curr.right, node);
@@ -28,7 +27,7 @@ fn addOrdered(comptime T: type, self: BinarySearchTree(T), maybeCurr: ?*Node(T),
     }
 }
 
-fn removeOrdered(comptime T: type, self: BinarySearchTree(T), maybeCurr: ?*Node(T), value: T) ?*Node(T) {
+fn removeOrdered(comptime T: type, self: BinarySearchTree(T), maybeCurr: ?*BinaryNode(T), value: T) ?*BinaryNode(T) {
     if (maybeCurr) |curr| {
         const order = self.compare(value, curr.value);
 
@@ -55,13 +54,13 @@ fn removeOrdered(comptime T: type, self: BinarySearchTree(T), maybeCurr: ?*Node(
     }
 }
 
-fn findMin(comptime T: type, root: *Node(T)) *Node(T) {
+fn findMin(comptime T: type, root: *BinaryNode(T)) *BinaryNode(T) {
     var succ = root;
     while (succ.left) |next_succ| { succ = next_succ; }
     return succ;
 }
 
-fn removeMin(comptime T: type, self: BinarySearchTree(T), min: *Node(T)) ?*Node(T) {
+fn removeMin(comptime T: type, self: BinarySearchTree(T), min: *BinaryNode(T)) ?*BinaryNode(T) {
     if (min.left) |left| {
         min.left = removeMin(T, self, left);
         return min;
@@ -71,7 +70,7 @@ fn removeMin(comptime T: type, self: BinarySearchTree(T), min: *Node(T)) ?*Node(
     }
 }
 
-fn deinitNode(comptime T: type, allocator: Allocator, maybeNode: ?*Node(T)) void {
+fn deinitNode(comptime T: type, allocator: Allocator, maybeNode: ?*BinaryNode(T)) void {
     if (maybeNode) |node| {
         deinitNode(T, allocator, node.left);
         deinitNode(T, allocator, node.right);
@@ -84,8 +83,10 @@ pub fn BinarySearchTree(comptime T: type) type {
     return struct {
         const Self = @This();
 
+        const Node = BinaryNode(T);
+
         allocator: Allocator,
-        root: ?*Node(T),
+        root: ?*Node,
         compare: *const Compare(T),
 
         pub fn init(allocator: Allocator) Self {
@@ -107,7 +108,7 @@ pub fn BinarySearchTree(comptime T: type) type {
         }
 
         pub fn add(self: *Self, value: T) Allocator.Error!void {
-            var node = try self.allocator.create(Node(T));
+            var node = try self.allocator.create(Node);
             node.value = value;
             node.left = null;
             node.right = null;

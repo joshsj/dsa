@@ -4,7 +4,7 @@ const mem = std.mem;
 const math = std.math;
 const Order = math.Order;
 
-const common = @import("../../common.zig");
+const common = @import("compare.zig");
 const Compare = common.Compare;
 const defaultCompare = common.defaultCompare;
 

@@ -3,9 +3,9 @@ const testing = std.testing;
 const mem = std.mem;
 const Allocator = mem.Allocator;
 
-const ArrayList = @import("../array-list.zig").ArrayList;
+const ArrayList = @import("array-list.zig").ArrayList;
 
-const common = @import("../common.zig");
+const common = @import("common.zig");
 const CompareOrder = common.CompareOrder;
 const Compare = common.Compare;
 const defaultCompare = common.defaultCompare;

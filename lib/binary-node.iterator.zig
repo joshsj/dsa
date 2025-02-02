@@ -2,10 +2,10 @@ const std = @import("std");
 const testing = std.testing;
 const Allocator = std.mem.Allocator;
 
-const ArrayList = @import("../../array-list.zig").ArrayList;
-const BinaryNode = @import("../../structures/binary-node.zig").BinaryNode;
-const Queue = @import("../../queue.zig").Queue;
-const Stack = @import("../../stack.zig").Stack;
+const ArrayList = @import("array-list.zig").ArrayList;
+const BinaryNode = @import("binary-node.zig").BinaryNode;
+const Queue = @import("queue.zig").Queue;
+const Stack = @import("stack.zig").Stack;
 
 pub fn GoingNode(comptime T: type) type {
     return struct {
@@ -25,7 +25,6 @@ pub fn GoingNode(comptime T: type) type {
     };
 }
 
-/// O(n)
 pub fn DepthFirstIterator(comptime T: type) type {
     return struct {
         const Self = @This();
@@ -154,7 +153,6 @@ pub fn DepthFirstIterator(comptime T: type) type {
     };
 }
 
-/// O(n)
 pub fn BreadthFirstIterator(comptime T: type) type {
     return struct {
         const Self = @This();
