@@ -4,8 +4,8 @@ const Allocator = std.mem.Allocator;
 
 const ArrayList = @import("../../structures/array-list.zig").ArrayList;
 const BinaryNode = @import("../../structures/binary-node.zig").BinaryNode;
-const Queue = @import("../../structures/queue.zig").Queue;
-const Stack = @import("../../structures/stack.zig").Stack;
+const Queue = @import("../../queue.zig").Queue;
+const Stack = @import("../../stack.zig").Stack;
 
 pub fn GoingNode(comptime T: type) type {
     return struct {

@@ -2,7 +2,7 @@ const std = @import("std");
 const testing = std.testing;
 const Allocator = std.mem.Allocator;
 
-const DoublyLinkedList = @import("./doubly-linked-list.zig").DoublyLinkedList;
+const DoublyLinkedList = @import("doubly-linked-list.zig").DoublyLinkedList;
 
 pub fn Queue(comptime T: type) type {
     return struct {
@@ -39,10 +39,11 @@ test Queue {
     var queue = Queue(u8).init(testing.allocator);
     defer queue.deinit();
 
-    // TODO: imporove once DLL has an iterator
     try queue.enqueue(1);
     try queue.enqueue(2);
     try queue.enqueue(3);
+
+    try testing.expectEqual(1, queue.peek());
 
     try testing.expectEqual(1, queue.deque());
     try testing.expectEqual(2, queue.deque());

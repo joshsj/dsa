@@ -2,9 +2,9 @@ const std = @import("std");
 const testing = std.testing;
 
 const ArrayList = @import("structures/array-list.zig").ArrayList;
-const DoublyLinkedList = @import("structures/doubly-linked-list.zig").DoublyLinkedList;
+const DoublyLinkedList = @import("doubly-linked-list.zig").DoublyLinkedList;
 
-// TODO add an iterator to check list contents
+// TODO: add an iterator to check list contents
 fn run(list: anytype) !void {
     try testing.expectEqual(0, list.len);
 
