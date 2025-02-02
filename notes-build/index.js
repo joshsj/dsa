@@ -47,29 +47,25 @@ const swallow = async p => {
 	const configPath = pathLib.resolve(indexDir, "config.yml");
 	const buildPath = pathLib.resolve(indexDir, "build", "index.html");
 
-	console.log({ indexDir, notesDir, configPath, buildPath });
+	console.log("Paths", { indexDir, notesDir, configPath, buildPath });
 
 	const config = yaml.parse(await fs.readFile(configPath, "utf8"));
 
-	console.log(`Building ${config.pages.length} pages`);
-
 	for await (const page of config.pages) {
-		const markdownAndMustache = await fs.readFile(
-			pathLib.resolve(notesDir, page.Path),
-			"utf8"
-		);
+		const path = pathLib.resolve(notesDir, page.srcPath);
+		console.log(`Building ${path}`);
 
+		const markdownAndMustache = await fs.readFile(path, "utf8");
 		const markdown = mustache.render(markdownAndMustache, mustacheOptions);
 
 		page.html = marked.parse(markdown);
 	}
 
+	console.log("Building index.html")
 	const indexMoustache = await fs.readFile(pathLib.resolve(indexDir, "index.html"), "utf8");
 	const indexHtml = mustache.render(indexMoustache, config);
 
+	console.log("Writing index.html");
 	swallow(() => fs.mkdir("build"));
-
 	await fs.writeFile(buildPath, indexHtml, "utf8");
-
-	console.log("Done");
 })();
