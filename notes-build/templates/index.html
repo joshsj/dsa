@@ -6,13 +6,6 @@
 
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.css"
-		integrity="sha384-zh0CIslj+VczCZtlzBcjt5ppRcsAmDnRem7ESsYwWwg3m/OaJ2l4x7YBZl9Kxxib" crossorigin="anonymous">
-
-	<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.js"
-		integrity="sha384-Rma6DA2IPUwhNxmrB/7S3Tno0YY7sFu9WSYMCuulLhIqYSGZ2gKCJWIqhBWqMQfh" crossorigin="anonymous">
-		</script>
-
 	<style>
 		html {
 			margin: 0 1rem;
@@ -38,32 +31,23 @@
 			letter-spacing: -0.01em;
 		}
 
-		article {
-			border-top: 0.2rem solid #ccc;
-		}
-
-		.katex {
-			font-size: 0.95em;
+		ul {
+			list-style-position: inside;
+			padding: 0;
+			list-style-type: none;
 		}
 	</style>
 </head>
 
 <body>
 	<h1>{{title}}</h1>
-	<p>My notes on the following:</p>
+	<p>Links: <a href="{{repo}}">Repository</a></p>
 
 	<nav>
 		<ul>
 			{{#pages}}
-			<li><a href="#{{id}}">{{title}}</a></li>
+			<li><a href="{{url}}">{{title}}</a></li>
 			{{/pages}}
 		</ul>
 	</nav>
-
-	{{#pages}}
-	<article>
-		<h1 id="{{id}}">{{title}}</h1>
-		{{{html}}}
-	</article>
-	{{/pages}}
 </body>

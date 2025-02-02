@@ -1,7 +1,7 @@
 title: Data Structures and Algorithms
-repoLink: https://github.com/joshsj/dsa
+repo: https://github.com/joshsj/dsa
 pages:
-  - id: array-list
-    title: Array List
-    srcPath: array-list.md
+  - id: complexity
+    title: Complexity
+    srcPath: complexity.md
 

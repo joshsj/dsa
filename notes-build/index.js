@@ -6,19 +6,15 @@ import katex from "katex";
 import { marked } from "marked";
 import yaml from "yaml";
 
-const mustacheOptions = (() => {
-	const importAliases = {
+const pageMustacheOptions = (() => {
+	const aliases = {
 		"@lib": "../lib",
 	}
 
 	const unalias = path => {
-		for (const alias in importAliases) {
-			if (path.startsWith(alias)) {
-				return path.replace(alias, importAliases[alias]);
-			}
-		};
+		const alias = Object.keys(aliases).find(alias => path.startsWith(alias));
 
-		return path;
+		return alias ? path.replace(alias, aliases[alias]) : path;
 	};
 
 	return {
@@ -35,37 +31,57 @@ const mustacheOptions = (() => {
 	}
 })();
 
-const swallow = async p => {
+const ensureDir = async dir => {
 	try {
-		await p();
+		await fs.mkdir(dir, { recursive: true });
 	} catch {}
 };
 
+const paths = (() => {
+	const root = import.meta.dirname;
+	const p = (...parts) => pathLib.resolve(root, ...parts);
+
+	return {
+		root,
+		notesDir : p("..", "notes"),
+		templatesDir : p("templates"),
+		buildDir : p("build"),
+		configPath : p("config.yml"),
+	};
+})();
+
+const config = yaml.parse(await fs.readFile(paths.configPath, "utf8"));
+
 (async () => {
-	const { dirname: indexDir } = import.meta;
-	const notesDir = pathLib.resolve(indexDir, "..", "notes");
-	const configPath = pathLib.resolve(indexDir, "config.yml");
-	const buildPath = pathLib.resolve(indexDir, "build", "index.html");
+	console.log("Paths", paths);
 
-	console.log("Paths", { indexDir, notesDir, configPath, buildPath });
+	const templates = {
+		index: await fs.readFile(pathLib.join(paths.templatesDir, "index.html"), "utf8"),
+		page: await fs.readFile(pathLib.join(paths.templatesDir, "page.html"), "utf8"),
+	};
 
-	const config = yaml.parse(await fs.readFile(configPath, "utf8"));
+	console.log("Creating /build directory");
+	await ensureDir(paths.buildDir)
 
 	for await (const page of config.pages) {
-		const path = pathLib.resolve(notesDir, page.srcPath);
-		console.log(`Building ${path}`);
+		console.log(`Building ${page.srcPath}`);
 
-		const markdownAndMustache = await fs.readFile(path, "utf8");
-		const markdown = mustache.render(markdownAndMustache, mustacheOptions);
+		const markdownAndMustache = await fs.readFile(pathLib.resolve(paths.notesDir, page.srcPath), "utf8");
+		const markdown = mustache.render(markdownAndMustache, pageMustacheOptions);
 
-		page.html = marked.parse(markdown);
+		page.body = marked.parse(markdown);
+		page.url = page.srcPath.replace(".md", "");
+
+		const pageHtml = mustache.render(templates.page, page);
+		await ensureDir(pathLib.join(paths.buildDir, page.url));
+
+		console.log(`Writing ${page.url}`);
+		await fs.writeFile(pathLib.join(paths.buildDir, page.url, "index.html"), pageHtml, "utf8");
 	}
 
-	console.log("Building index.html")
-	const indexMoustache = await fs.readFile(pathLib.resolve(indexDir, "index.html"), "utf8");
-	const indexHtml = mustache.render(indexMoustache, config);
+	console.log("Building index.html");
+	const indexHtml = mustache.render(templates.index, config);
 
 	console.log("Writing index.html");
-	swallow(() => fs.mkdir("build"));
-	await fs.writeFile(buildPath, indexHtml, "utf8");
+	await fs.writeFile(pathLib.join(paths.buildDir, "index.html"), indexHtml, "utf8");
 })();
