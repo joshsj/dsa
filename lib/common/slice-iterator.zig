@@ -8,7 +8,7 @@ pub fn SliceIterator(comptime T: type) type {
         slice: []const T,
         moved: bool = false,
 
-        pub fn new(slice: []const T) Self {
+        pub fn init(slice: []const T) Self {
             return Self { .slice = slice };
         }
 
@@ -30,28 +30,28 @@ pub fn SliceIterator(comptime T: type) type {
 
 test "given empty slice when curr() then null is returned" {
     const slice = &[0]u8 {};
-    var iterator = SliceIterator(u8).new(slice);
+    var iterator = SliceIterator(u8).init(slice);
 
     try testing.expectEqual(null, iterator.curr());
 }
 
 test "given empty slice when next() then null is returned" {
     const slice = &[0]u8 {};
-    var iterator = SliceIterator(u8).new(slice);
+    var iterator = SliceIterator(u8).init(slice);
 
     try testing.expectEqual(null, iterator.curr());
 }
 
 test "given slice of 1 item when curr() then returns null" {
     const slice = [_]u8 { 7, };
-    var iterator = SliceIterator(u8).new(&slice);
+    var iterator = SliceIterator(u8).init(&slice);
 
     try testing.expectEqual(null, iterator.curr());
 }
 
 test "given slice of 1 item when next() then iterator moves through slice" {
     const slice = [_]u8 { 7, };
-    var iterator = SliceIterator(u8).new(&slice);
+    var iterator = SliceIterator(u8).init(&slice);
 
     try testing.expectEqual(7, iterator.next());
     try testing.expectEqual(7, iterator.curr());
@@ -62,7 +62,7 @@ test "given slice of 1 item when next() then iterator moves through slice" {
 
 test "given slice of many items when next() then iterator moves through slice" {
     const slice = [_]u8 { 7, 9 };
-    var iterator = SliceIterator(u8).new(&slice);
+    var iterator = SliceIterator(u8).init(&slice);
 
     try testing.expectEqual(7, iterator.next());
     try testing.expectEqual(7, iterator.curr());

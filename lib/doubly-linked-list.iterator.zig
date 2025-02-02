@@ -2,7 +2,7 @@ const std = @import("std");
 
 const testing = @import("testing.zig");
 const DoublyLinkedList = @import("doubly-linked-list.zig").DoublyLinkedList;
-const ArrayList = @import("structures/array-list.zig").ArrayList;
+const ArrayList = @import("array-list.zig").ArrayList;
 
 // TODO: backwards?
 pub fn DoublyLinkedListIterator(comptime T: type) type {

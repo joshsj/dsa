@@ -1,10 +1,11 @@
+///! Just an experiment with Zig's duck typing (anytype)
+
 const std = @import("std");
-const testing = std.testing;
+const testing = @import("../testing.zig");
 
-const ArrayList = @import("structures/array-list.zig").ArrayList;
-const DoublyLinkedList = @import("doubly-linked-list.zig").DoublyLinkedList;
+const ArrayList = @import("../array-list.zig").ArrayList;
+const DoublyLinkedList = @import("../doubly-linked-list.zig").DoublyLinkedList;
 
-// TODO: add an iterator to check list contents
 fn run(list: anytype) !void {
     try testing.expectEqual(0, list.len);
 
@@ -18,6 +19,9 @@ fn run(list: anytype) !void {
     try list.addAt(2, 3);
 
     try testing.expectEqual(5, list.len);
+
+    var iter = list.iter();
+    try testing.expectEqualSliceToIter(u8, &[_]u8 { 1, 2, 3, 4, 5, }, &iter);
 
     try testing.expectEqual(1, list.removeFirst());
     try testing.expectEqual(5, list.removeLast());

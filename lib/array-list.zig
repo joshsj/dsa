@@ -3,12 +3,15 @@ const testing = std.testing;
 const mem = std.mem;
 const Allocator = std.mem.Allocator;
 
-const SliceIterator = @import("../algorithms/slice/iterator.zig").SliceIterator;
+const SliceIterator = @import("common.zig").SliceIterator;
 
-// TODO std lib optimises growth with resize()
+// TODO: std lib optimises growth with resize()
 pub fn ArrayList(comptime T: type) type {
     return struct {
         const Self = @This();
+
+        const Iterator = SliceIterator(T);
+
         const DefaultCapacity = 10; // We Java now boys
         const DefaultGrowthFactor = 2;
 
@@ -37,11 +40,11 @@ pub fn ArrayList(comptime T: type) type {
             };
         }
 
-        pub fn fromIterator(allocator: Allocator, iter: anytype) Allocator.Error!Self {
+        pub fn fromIterator(allocator: Allocator, iterator: anytype) Allocator.Error!Self {
             var self = try init(allocator);
             errdefer self.deinit();
 
-            while (try iter.next()) |curr| {
+            while (try iterator.next()) |curr| {
                 try self.addLast(curr);
             }
 
@@ -50,7 +53,7 @@ pub fn ArrayList(comptime T: type) type {
 
         pub fn deinit(self: Self) void {
             self.allocator.free(self.items[0..self.capacity]);
-            // TODO reset capacity to 0?
+            // TODO: reset capacity to 0?
         }
 
         /// O(n)
@@ -68,7 +71,7 @@ pub fn ArrayList(comptime T: type) type {
         /// O(n)
         pub fn addAt(self: *Self, index: usize, value: T) Allocator.Error!void {
             if (index > self.len) {
-                // TODO OOB
+                // TODO? OOB
                 return;
             }
 
@@ -111,10 +114,12 @@ pub fn ArrayList(comptime T: type) type {
             self.len += 1;
         }
 
+        /// O(n)
         pub fn removeFirst(self: *Self) ?T {
             return self.removeAt(0);
         }
 
+        /// O(n)
         pub fn removeAt(self: *Self, index: usize) ?T {
             if (index + 1 > self.len) {
                 return null;
@@ -162,8 +167,8 @@ pub fn ArrayList(comptime T: type) type {
             return self.items[0..self.len];
         }
 
-        pub fn iterator(self: Self) SliceIterator(T) {
-            return SliceIterator(T).new(self.slice());
+        pub fn iter(self: Self) Iterator {
+            return Iterator.init(self.slice());
         }
 
         fn growToCapacityWithEmptyIndex(self: *Self, capacity: usize, index: usize) Allocator.Error!void {
@@ -221,7 +226,7 @@ test "when initCapacity() then list has no items" {
 
 test "given iterator when fromIterator() then list has items from iterator" {
     const items = [_]u8 { 1, 2, 3, 4, };
-    var iter = SliceIterator(u8).new(&items);
+    var iter = SliceIterator(u8).init(&items);
 
     var list = try ArrayList(u8).fromIterator(testing.allocator, &iter);
     defer list.deinit();

@@ -2,7 +2,7 @@ const std = @import("std");
 const testing = std.testing;
 const Allocator = std.mem.Allocator;
 
-const ArrayList = @import("../structures/array-list.zig").ArrayList;
+const ArrayList = @import("../array-list.zig").ArrayList;
 
 const Node = @import("binary-node.zig").BinaryNode;
 
