@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<title>{{title}}</title>
+
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.css"
+		integrity="sha384-zh0CIslj+VczCZtlzBcjt5ppRcsAmDnRem7ESsYwWwg3m/OaJ2l4x7YBZl9Kxxib" crossorigin="anonymous">
+
+	<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.js"
+		integrity="sha384-Rma6DA2IPUwhNxmrB/7S3Tno0YY7sFu9WSYMCuulLhIqYSGZ2gKCJWIqhBWqMQfh" crossorigin="anonymous">
+		</script>
+
+	<style>
+		html {
+			margin: 0 1rem;
+		}
+
+		body {
+			font-family:
+				-apple-system, BlinkMacSystemFont, avenir next, avenir, segoe ui,
+				helvetica neue, helvetica, Cantarell, Ubuntu, roboto, noto, arial, sans-serif;
+			font-size: 1.3rem;
+			max-width: 37rem;
+			margin: 0 auto;
+			color: #333;
+			background-color: #fafafa;
+			line-height: 1.5;
+		}
+
+		h1,
+		h2,
+		h3,
+		h4 {
+			line-height: 1.1;
+		}
+
+		.katex {
+			font-size: 0.95em;
+		}
+	</style>
+</head>
+
+<body>
+	<h1>{{title}}</h1>
+
+	<nav>
+		<ul>
+			{{#pages}}
+			<li><a href="#{{id}}">{{title}}</a></li>
+			{{/pages}}
+		</ul>
+	</nav>
+
+	{{#pages}}
+	<article>
+		<h1 id="{{id}}">{{title}}</h1>
+		{{{html}}}
+	</article>
+	{{/pages}}
+</body>
