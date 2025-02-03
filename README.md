@@ -2,6 +2,8 @@
 
 My notes and implementations.
 
+https://joshsj.github.io/dsa
+
 ## Install
 
 ```sh
