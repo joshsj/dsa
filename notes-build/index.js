@@ -40,12 +40,13 @@ const ensureDir = async dir => {
 const paths = (() => {
 	const root = import.meta.dirname;
 	const p = (...parts) => pathLib.resolve(root, ...parts);
+	const buildDir = process.argv[2] || p("build");
 
 	return {
 		root,
+		buildDir,
 		notesDir : p("..", "notes"),
 		templatesDir : p("templates"),
-		buildDir : p("build"),
 		configPath : p("config.yml"),
 	};
 })();
@@ -60,7 +61,7 @@ const config = yaml.parse(await fs.readFile(paths.configPath, "utf8"));
 		page: await fs.readFile(pathLib.join(paths.templatesDir, "page.html"), "utf8"),
 	};
 
-	console.log("Creating /build directory");
+	console.log("Creating build directory");
 	await ensureDir(paths.buildDir)
 
 	for await (const page of config.pages) {

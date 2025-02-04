@@ -6,29 +6,63 @@
 
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300..400;1,14..32,300..400&display=swap" rel="stylesheet">
+
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.css"
+		integrity="sha384-zh0CIslj+VczCZtlzBcjt5ppRcsAmDnRem7ESsYwWwg3m/OaJ2l4x7YBZl9Kxxib" crossorigin="anonymous">
+
+	<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.js"
+		integrity="sha384-Rma6DA2IPUwhNxmrB/7S3Tno0YY7sFu9WSYMCuulLhIqYSGZ2gKCJWIqhBWqMQfh" crossorigin="anonymous">
+		</script>
+
 	<style>
 		html {
 			margin: 0 1rem;
 		}
 
-		body {
-			font-family:
-				-apple-system, BlinkMacSystemFont, avenir next, avenir, segoe ui,
-				helvetica neue, helvetica, Cantarell, Ubuntu, roboto, noto, arial, sans-serif;
-			font-size: 1.3rem;
-			max-width: 37rem;
-			margin: 0 auto;
-			color: #333;
-			background-color: #fafafa;
-			line-height: 1.5;
+		* {
+			font-family: inherit;
+			font-weight: inherit;
 		}
 
-		h1,
-		h2,
-		h3,
-		h4 {
+		body {
+			font-family:
+				Inter, -apple-system, BlinkMacSystemFont, avenir next, avenir, segoe ui,
+				helvetica neue, helvetica, Cantarell, Ubuntu, roboto, noto, arial, sans-serif;
+			font-size: 1.2rem;
+			font-weight: 300;
+			line-height: 1.6;
+			max-width: 37rem;
+			margin: 0 auto;
+		}
+
+		a {
+			color: inherit;
+			text-underline-offset: 0.1em;
+		}
+
+		h1, h2, h3, h4 {
 			line-height: 1.1;
-			letter-spacing: -0.01em;
+			letter-spacing: -0.03em;
+			font-weight: 400;
+		}
+
+		h1 {
+			font-size: 2.5rem;
+		}
+
+		h2 {
+			font-size: 2rem;
+		}
+
+		h3 {
+			font-size: 1.5rem;
+		}
+			
+		article {
+			border-top: 0.15rem dashed #ccc;
 		}
 
 		ul {
@@ -36,18 +70,23 @@
 			padding: 0;
 			list-style-type: none;
 		}
+
+		::marker {
+			content: '~ ';
+		}
 	</style>
 </head>
 
 <body>
-	<h1>{{title}}</h1>
-	<p>Links: <a href="{{repo}}">Repository</a></p>
+	<p><a href="{{repo}}">Repo</a></p>
 
-	<nav>
-		<ul>
-			{{#pages}}
-			<li><a href="{{url}}">{{title}}</a></li>
-			{{/pages}}
-		</ul>
-	</nav>
+	<h1>{{title}}</h1>
+
+	<p>My notes of the following:</p>
+
+	<ul>
+	{{#pages}}
+		<li><a href="{{url}}">{{title}}</a></li>
+	{{/pages}}
+	</ul>
 </body>
