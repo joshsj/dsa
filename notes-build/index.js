@@ -9,7 +9,8 @@ import yaml from "yaml";
 const pageMustacheOptions = (() => {
 	const aliases = {
 		"@lib": "../lib",
-	}
+		"@notes": "../notes",
+	};
 
 	const unalias = path => {
 		const alias = Object.keys(aliases).find(alias => path.startsWith(alias));
@@ -17,16 +18,18 @@ const pageMustacheOptions = (() => {
 		return alias ? path.replace(alias, aliases[alias]) : path;
 	};
 
+	const expand = path =>
+		path.isAbsolute(path) 
+			? path
+			: path.resolve(import.meta.dirname, unalias(path));
+		
 	return {
 		math() {
 			return (text, render) => katex.renderToString(render(text));
 		},
 
 		include() {
-			return path => fsSync.readFileSync(
-				pathLib.resolve(import.meta.dirname, unalias(path)),
-				"utf8"
-			);
+			return path => fsSync.readFileSync(expand(path), "utf8");
 		}
 	}
 })();
@@ -47,6 +50,7 @@ const paths = (() => {
 		buildDir,
 		notesDir : p("..", "notes"),
 		templatesDir : p("templates"),
+		staticDir: p("static"),
 		configPath : p("config.yml"),
 	};
 })();
@@ -85,4 +89,13 @@ const config = yaml.parse(await fs.readFile(paths.configPath, "utf8"));
 
 	console.log("Writing index.html");
 	await fs.writeFile(pathLib.join(paths.buildDir, "index.html"), indexHtml, "utf8");
+
+	console.log("Copying static files");
+	const staticFileNames = await fs.readdir(paths.staticDir, "utf8");
+
+	await Promise.all(
+		staticFileNames.map(
+			x => fs.copyFile(pathLib.join(paths.staticDir, x), pathLib.join(paths.buildDir, x))
+		)
+	);
 })();

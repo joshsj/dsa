@@ -1,5 +1,15 @@
 title: Data Structures and Algorithms
 repo: https://github.com/joshsj/dsa
+
+references:
+  - title: The Last Algorithms Course You'll Need
+    by: ThePrimeagen
+    url: https://frontendmasters.com/courses/algorithms
+
+  - title: A Common-Sense Guide to Data Structures and Algorithms
+    by: Jay Wengrow
+    url: https://www.oreilly.com/library/view/a-common-sense-guide/9781680502794/
+
 pages:
   - id: complexity
     title: Complexity

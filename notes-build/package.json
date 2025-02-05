@@ -4,7 +4,8 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "build": "node index.js"
+    "build": "node index.js",
+    "dev": "npx nodemon -e md,js --watch .."
   },
   "author": "",
   "license": "ISC",
