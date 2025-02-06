@@ -11,7 +11,7 @@ references:
     url: https://www.oreilly.com/library/view/a-common-sense-guide/9781680502794/
 
 pages:
-  - id: complexity
-    title: Complexity
-    srcPath: complexity.md
+  - id: time-complexity
+    title: Time Complexity
+    srcPath: time-complexity.md
 

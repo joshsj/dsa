@@ -22,15 +22,27 @@ const pageMustacheOptions = (() => {
 		path.isAbsolute(path) 
 			? path
 			: path.resolve(import.meta.dirname, unalias(path));
-		
+
 	return {
 		math() {
 			return (text, render) => katex.renderToString(render(text));
 		},
 
+		dmath() {
+			return (text, render) => katex.renderToString(render(text), { displayMode: true });
+		},
+
+		bigo() {
+			return (text, render) => this.math()(`O(${text})`, render);
+		},
+
 		include() {
 			return path => fsSync.readFileSync(expand(path), "utf8");
-		}
+		},
+
+		aside() {
+			return (text, render) => `<aside>${render(text)}</aside>`;
+		},
 	}
 })();
 
