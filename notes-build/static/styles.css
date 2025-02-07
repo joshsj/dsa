@@ -46,10 +46,13 @@ article {
 	border-top: 0.15rem dashed #ccc;
 }
 
+ul, ol {
+  list-style-position: inside;
+  padding: 0;
+}
+
 ul {
-	list-style-position: inside;
 	list-style-type: none;
-	padding: 0;
 }
 
 ul > li::before {
@@ -61,4 +64,3 @@ aside {
     padding-left: 1em;
     border-left: 0.2rem solid #ddd;
 }
-
