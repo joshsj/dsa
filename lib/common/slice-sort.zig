@@ -53,7 +53,7 @@ pub fn partition(comptime T: type, compare: *const Compare(T), items: []T) ?usiz
 }
 
 /// O(n*log(n))
-/// partition() is O(n)
+/// partition() is n
 /// quick calls partition log(n) times
 pub fn quick(comptime T: type, compare: *const Compare(T), items: []T) void {
     if (items.len <= 1) {
@@ -63,7 +63,7 @@ pub fn quick(comptime T: type, compare: *const Compare(T), items: []T) void {
     const pivot_idx = partition(T, compare, items).?;
 
     quick(T, compare, items[0..pivot_idx]);
-    quick(T, compare, items[pivot_idx..items.len]);
+    quick(T, compare, items[pivot_idx + 1..items.len]);
 }
 
 /// O(n^2)
