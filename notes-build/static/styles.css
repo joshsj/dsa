@@ -5,7 +5,6 @@ html {
 }
 
 * {
-	font-family: inherit;
 	color: inherit;
 }
 
@@ -13,6 +12,7 @@ body {
 	font-family: Inter, -apple-system, BlinkMacSystemFont, avenir next, avenir,
 	segoe ui, helvetica neue, helvetica, Cantarell, Ubuntu, roboto, noto,
 	arial, sans-serif;
+	font-size: 1rem;
 	font-weight: 400;
 	line-height: 1.7;
 	max-width: 40rem;
@@ -39,7 +39,7 @@ h2 {
 }
 
 h3 {
-	font-size: 1.3rem;
+	font-size: 1.4rem;
 }
 	
 article {
@@ -57,6 +57,10 @@ ul {
 
 ul > li::before {
 	content: "~ ";
+}
+
+pre {
+	overflow-x: auto;
 }
 
 aside {

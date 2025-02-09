@@ -1,13 +1,13 @@
 # Time Complexity
 
-**Time complexity** expresses the execution time of an algorithm as a function of
-its input size.
+**Time complexity** expresses the execution time of an algorithm as a function
+of its input size.
 
 {{#aside}}
 
 There is also **space complexity**, which expresses the amount of memory
-required by an algorithm as a function of its input size. The idea is the same but
-time complexity is generally the focus (as far as I've read).
+required by an algorithm as a function of its input size. The idea is the same
+but time complexity is generally the focus (as far as I've read).
 
 {{/aside}}
 
@@ -15,9 +15,9 @@ These provide a theoretical understanding of how an algorithm performs,
 ignorant of any other variables: implementation details, hardware limitations,
 compiler optimisations, etc.
 
-This enables developers to reason about different algorithms without implementing
-and benchmarking them. Many data structures and their associated algorithms can
-be used to solve a given problem so complexity 
+This enables developers to reason about different algorithms without
+implementing and benchmarking them. Many data structures and their associated
+algorithms can be used to solve a given problem so complexity 
 
 This understanding is important because:
 
@@ -47,26 +47,21 @@ Time complexity has two unexpected rules:
 So an expression like {{#math}}3n^2+4n+7{{/math}} is written as
 {{#math}}O(n^2){{/math}} in Big O notation.
 
-Why? Because it looks at how an algorithm performs at scale so **coefficients and
-smaller terms become insignificant** to the computation:
+Why? Because it looks at how an algorithm performs at scale so **coefficients
+and smaller terms become insignificant** to the computation:
 
-{{#dmath}}
-n=10, n^2=100
-{{/dmath}}
+{{#dmath}} n=10, n^2=100 {{/dmath}}
 
-{{#dmath}}
-n=1000, n^2=1,000,000
-{{/dmath}}
+{{#dmath}} n=1000, n^2=1,000,000 {{/dmath}}
 
-{{#dmath}}
-n=100,000, n^2=10,000,000,000
-{{/dmath}}
+{{#dmath}} n=100,000, n^2=10,000,000,000 {{/dmath}}
 
 ## Common Time Complexities
 
 Constant, {{#bigo}}1{{/bigo}}: same number of steps, regardless of input size.
 
-Logarithmic, {{#bigo}}\log{n}{{/bigo}}: after each pass, the number of steps is halved.
+Logarithmic, {{#bigo}}\log{n}{{/bigo}}: after each pass, the number of steps is
+halved.
 
 {{#aside}}
 
@@ -88,16 +83,35 @@ Expontential, {{#bigo}}2^n{{/bigo}}.
 
 Factorial, {{#bigo}}n!{{/bigo}}.
 
-{{! TODO 
+## Practical Considerations
 
-## Handing Equal Complexity
+Big O isn't everything.
 
+### Equal Complexities
 
+When two alogorthms have the same time complexity, the discarded coefficients
+and smaller terms come back into play.
 
-## Practical Differences
+Take a bubble and selection sort:
 
-smaller inputs can be faster with algos of worse time complexity
+```zig
+{{#include}}@lib/common/slice-sort.zig[12..26]{{/include}}
+{{#include}}@lib/common/slice-sort.zig[70..88]{{/include}}
+```
 
-}}
+They're both {{#bigo}}n^2{{/bigo}} and do rougly the same amount of comparisons
+but, in the worst case (reverse ordered), bubble sort will do a lot more swaps so
+selection sort is likely a better fit.
 
+### Limited Scale
+
+If the inputs aren't going to grow then a "less efficient" algorithm could be
+more performant for the use-case.
+
+For example, compare {{#bigo}}50n{{/bigo}} and {{#bigo}}n^2{{/bigo}} with a
+small input side:
+
+{{#dmath}} n = 10, 50n = 500 {{/dmath}}
+
+{{#dmath}} n = 5, n^2 = 100 {{/dmath}}
 

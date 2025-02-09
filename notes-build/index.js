@@ -19,9 +19,9 @@ const pageMustacheOptions = (() => {
 	};
 
 	const expand = path =>
-		path.isAbsolute(path) 
+		pathLib.isAbsolute(path) 
 			? path
-			: path.resolve(import.meta.dirname, unalias(path));
+			: pathLib.resolve(import.meta.dirname, unalias(path));
 
 	return {
 		math() {
@@ -37,7 +37,26 @@ const pageMustacheOptions = (() => {
 		},
 
 		include() {
-			return path => fsSync.readFileSync(expand(path), "utf8");
+			const rangeRegex = /^(?<path>.+)\[(?<start>\d+)\.\.(?<end>\d+)\]$/;
+
+			return path => {
+				path = path.trim();
+
+				const match = rangeRegex.exec(path);
+
+				if (!match) {
+					return fsSync.readFileSync(expand(path), "utf8");
+				}
+
+				let { start, end } = match.groups;
+
+				return fsSync
+					.readFileSync(expand(match.groups.path), "utf8")
+					.split("\n")
+					.slice(parseInt(start) - 1, parseInt(end))
+					.join("\n");
+			};
+
 		},
 
 		aside() {
