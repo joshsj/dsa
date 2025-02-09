@@ -28,6 +28,7 @@ a {
 h1, h2, h3, h4 {
 	line-height: 1.1;
 	font-weight: 400;
+	letter-spacing: -0.02em;
 }
 
 h1 {
