@@ -87,6 +87,25 @@ pub fn selection(comptime T: type, compare: *const Compare(T), items: []T) void 
     }
 }
 
+/// O(n^2)
+pub fn insertion(comptime T: type, compare: *const Compare(T), items: []T) void {
+    if (items.len <= 1) {
+        return;
+    }
+
+    for (1..items.len) |i| {
+        const temp = items[i];
+        var j = i;
+
+        while (j > 0 and compare(items[j-1], temp) == .gt) {
+            items[j] = items[j-1];
+            j -= 1;
+        }
+
+        items[j] = temp;
+    }
+}
+
 const Str = []const u8;
 
 fn compareStrings(a: Str, b: Str) Order {
@@ -161,6 +180,20 @@ test selection {
     try test_strs(struct {
         fn f(data: []Str, compare: *const Compare(Str)) void {
             selection(Str, compare, data);
+        }
+    }.f);
+}
+
+test insertion {
+    try test_u8s(struct {
+        fn f(data: []u8, compare: *const Compare(u8)) void {
+            insertion(u8, compare, data);
+        }
+    }.f);
+
+    try test_strs(struct {
+        fn f(data: []Str, compare: *const Compare(Str)) void {
+            insertion(Str, compare, data);
         }
     }.f);
 }
