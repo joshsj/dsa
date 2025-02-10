@@ -1,0 +1,71 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;1,14..32,400&display=swap');
+
+html {
+	margin: 0 1rem;
+}
+
+* {
+	color: inherit;
+}
+
+body {
+	font-family: Inter, -apple-system, BlinkMacSystemFont, avenir next, avenir,
+	segoe ui, helvetica neue, helvetica, Cantarell, Ubuntu, roboto, noto,
+	arial, sans-serif;
+	font-size: 1rem;
+	font-weight: 400;
+	line-height: 1.7;
+	max-width: 40rem;
+	margin: 0 auto 2rem;
+	color: #333;
+}
+
+a {
+	color: inherit;
+	text-underline-offset: 0.1em;
+}
+
+h1, h2, h3, h4 {
+	line-height: 1.1;
+	font-weight: 400;
+	letter-spacing: -0.02em;
+}
+
+h1 {
+	font-size: 2.3rem;
+}
+
+h2 {
+	font-size: 1.8rem;
+}
+
+h3 {
+	font-size: 1.4rem;
+}
+	
+article {
+	border-top: 0.15rem dashed #ccc;
+}
+
+ul, ol {
+  list-style-position: inside;
+  padding: 0;
+}
+
+ul {
+	list-style-type: none;
+}
+
+ul > li::before {
+	content: "~ ";
+}
+
+pre {
+	overflow-x: auto;
+}
+
+aside {
+    font-size: 0.9em;
+    padding-left: 1em;
+    border-left: 0.2rem solid #ddd;
+}
