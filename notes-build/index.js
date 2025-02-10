@@ -6,7 +6,7 @@ import katex from "katex";
 import { marked } from "marked";
 import yaml from "yaml";
 
-const pageMustacheOptions = (() => {
+const createMustacheOptions = config => {
 	const aliases = {
 		"@lib": "../lib",
 		"@notes": "../notes",
@@ -19,7 +19,7 @@ const pageMustacheOptions = (() => {
 	};
 
 	const expand = path =>
-		pathLib.isAbsolute(path) 
+		pathLib.isAbsolute(path)
 			? path
 			: pathLib.resolve(import.meta.dirname, unalias(path));
 
@@ -62,13 +62,21 @@ const pageMustacheOptions = (() => {
 		aside() {
 			return (text, render) => `<aside>${render(text)}</aside>`;
 		},
+
+		ref() {
+			return text => {
+				const { title, url } = config.references.find(x => x.id === text);
+
+				return `[${title}](${url})`;
+			}
+		}
 	}
-})();
+};
 
 const ensureDir = async dir => {
 	try {
 		await fs.mkdir(dir, { recursive: true });
-	} catch {}
+	} catch { }
 };
 
 const paths = (() => {
@@ -79,10 +87,10 @@ const paths = (() => {
 	return {
 		root,
 		buildDir,
-		notesDir : p("..", "notes"),
-		templatesDir : p("templates"),
+		notesDir: p("..", "notes"),
+		templatesDir: p("templates"),
 		staticDir: p("static"),
-		configPath : p("config.yml"),
+		configPath: p("config.yml"),
 	};
 })();
 
@@ -91,19 +99,21 @@ const config = yaml.parse(await fs.readFile(paths.configPath, "utf8"));
 (async () => {
 	console.log("Paths", paths);
 
+	const mustacheOptions = createMustacheOptions(config);
+
 	const templates = {
 		index: await fs.readFile(pathLib.join(paths.templatesDir, "index.html"), "utf8"),
 		page: await fs.readFile(pathLib.join(paths.templatesDir, "page.html"), "utf8"),
 	};
 
 	console.log("Creating build directory");
-	await ensureDir(paths.buildDir)
+	await ensureDir(paths.buildDir);
 
 	for await (const page of config.pages) {
 		console.log(`Building ${page.srcPath}`);
 
 		const markdownAndMustache = await fs.readFile(pathLib.resolve(paths.notesDir, page.srcPath), "utf8");
-		const markdown = mustache.render(markdownAndMustache, pageMustacheOptions);
+		const markdown = mustache.render(markdownAndMustache, mustacheOptions);
 
 		page.body = marked.parse(markdown);
 		page.url = page.srcPath.replace(".md", "");

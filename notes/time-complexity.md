@@ -1,11 +1,11 @@
 # Time Complexity
 
-**Time complexity** expresses the execution time of an algorithm as a function
+Time complexity expresses the execution time of an algorithm as a function
 of its input size.
 
 {{#aside}}
 
-There is also **space complexity**, which expresses the amount of memory
+There is also space complexity, which expresses the amount of memory
 required by an algorithm as a function of its input size. The idea is the same
 but time complexity is generally the focus (as far as I've read).
 
@@ -28,7 +28,7 @@ This understanding is important because:
 
 ## Notation
 
-Time complexity is measured with **Big O** notation.
+Time complexity is measured with Big O notation.
 
 {{#math}}O{{/math}} is the name of the aforementioned function and its
 arguments(s) are the size of the data, typically using {{#math}}n{{/math}} for
@@ -47,8 +47,8 @@ Time complexity has two unexpected rules:
 So an expression like {{#math}}3n^2+4n+7{{/math}} is written as
 {{#math}}O(n^2){{/math}} in Big O notation.
 
-Why? Because it looks at how an algorithm performs at scale so **coefficients
-and smaller terms become insignificant** to the computation:
+Why? Because it looks at how an algorithm performs at scale so coefficients
+and smaller terms become insignificant to the computation:
 
 {{#dmath}} n=10, n^2=100 {{/dmath}}
 
@@ -83,13 +83,25 @@ Expontential, {{#bigo}}2^n{{/bigo}}.
 
 Factorial, {{#bigo}}n!{{/bigo}}.
 
+## Cases
+
+Big O can describe the perfomance of an algorithm in a best, average, and worst
+case. These cases are distrubuted on a bell curve: best and worst case are
+rare, average is more likely.
+
+The worst-case is normally considered when comparing the performance of
+algorithms because
+
+1. no assumptions can be about the problem space, and
+2. the upper bound of the function is most important at scale.
+
 ## Practical Considerations
 
 Big O isn't everything.
 
 ### Equal Complexities
 
-When two alogorthms have the same time complexity, the discarded coefficients
+When two algorithms have the same time complexity, the discarded coefficients
 and smaller terms come back into play.
 
 Take a bubble and selection sort:
@@ -114,4 +126,15 @@ small input side:
 {{#dmath}} n = 10, 50n = 500 {{/dmath}}
 
 {{#dmath}} n = 5, n^2 = 100 {{/dmath}}
+
+Limited growth can also change whether the worst-case is the right case to
+analyse. If the problem space will encounter the average case more frequently,
+then an algorithm can be chosen to optimise for this scenario.
+
+{{#aside}}
+
+See "The Average Case" in {{#ref}}commonSense{{/ref}} for a breakdown of insertion vs. selection sort
+in different expected scenarios.
+
+{{/aside}}
 
