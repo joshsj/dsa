@@ -36,6 +36,31 @@ const createMustacheOptions = config => {
 			return (text, render) => this.math()(`O(${text})`, render);
 		},
 
+		dfn() {
+			return id => {
+				const { title } = config.terms.find(x => x.id === id);
+
+				return `<a href="../#terminology"><dfn>${title}</dfn></a>`;
+			};
+		},
+
+		dl() {
+			return lines => {
+				lines = lines.trim();
+
+				let { terms } = config;
+
+				if (lines !== "*") {
+					const ids = lines.split("\n").filter(x => x).map(x => x.trim());
+					terms = config.terms.filter(x => ids.includes(x.id));
+				}
+
+				const defs = terms.map(({ title, definition}) => `<dt>${title}</dt><dd>${definition}</dd>`).join("");
+
+				return `<dl>${defs}</dl>`;
+			};
+		},
+
 		include() {
 			const rangeRegex = /^(?<path>.+)\[(?<start>\d+)\.\.(?<end>\d+)\]$/;
 
@@ -118,7 +143,7 @@ const config = yaml.parse(await fs.readFile(paths.configPath, "utf8"));
 		page.body = marked.parse(markdown);
 		page.url = page.srcPath.replace(".md", "");
 
-		const pageHtml = mustache.render(templates.page, page);
+		const pageHtml = mustache.render(templates.page, { ...page, ...mustacheOptions });
 		await ensureDir(pathLib.join(paths.buildDir, page.url));
 
 		console.log(`Writing ${page.url}`);
@@ -126,7 +151,7 @@ const config = yaml.parse(await fs.readFile(paths.configPath, "utf8"));
 	}
 
 	console.log("Building index.html");
-	const indexHtml = mustache.render(templates.index, config);
+	const indexHtml = mustache.render(templates.index, { ...config, ...mustacheOptions });
 
 	console.log("Writing index.html");
 	await fs.writeFile(pathLib.join(paths.buildDir, "index.html"), indexHtml, "utf8");

@@ -17,3 +17,13 @@ pages:
     title: Time Complexity
     srcPath: time-complexity.md
 
+  - id: hash-tables
+    title: Hash Tables
+    srcPath: hash-tables.md
+
+terms:
+  - id: load-factor
+    title: Load Factor
+    definition: >-
+      The ratio of elements to capacity in a data structure.
+

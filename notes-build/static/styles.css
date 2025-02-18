@@ -69,3 +69,7 @@ aside {
     padding-left: 1em;
     border-left: 0.2rem solid #ddd;
 }
+
+a:has(dfn) {
+	text-decoration: none;
+}
