@@ -6,6 +6,10 @@ import katex from "katex";
 import { marked } from "marked";
 import yaml from "yaml";
 
+function frow(err) {
+	throw err;
+}
+
 const createMustacheOptions = config => {
 	const aliases = {
 		"@lib": "../lib",
@@ -23,6 +27,13 @@ const createMustacheOptions = config => {
 			? path
 			: pathLib.resolve(import.meta.dirname, unalias(path));
 
+	const byId = (prop, id) => {
+		id = id.trim();
+
+        return config[prop].find(x => x.id === id) || frow(`Could not find ${id} in ${prop}`);
+    };
+
+	// Render functions append \n to ensure markdown renderer will not preserve the source
 	return {
 		math() {
 			return (text, render) => katex.renderToString(render(text));
@@ -38,9 +49,9 @@ const createMustacheOptions = config => {
 
 		dfn() {
 			return id => {
-				const { title } = config.terms.find(x => x.id === id);
+				const { title } = byId("terms", id);
 
-				return `<a href="../#terminology"><dfn>${title}</dfn></a>`;
+				return `<a href="../#terminology"><dfn>${title}</dfn></a>\n`;
 			};
 		},
 
@@ -51,13 +62,13 @@ const createMustacheOptions = config => {
 				let { terms } = config;
 
 				if (lines !== "*") {
-					const ids = lines.split("\n").filter(x => x).map(x => x.trim());
+					const ids = lines.split(/[ \t\n]/).filter(x => x).map(x => x.trim());
 					terms = config.terms.filter(x => ids.includes(x.id));
 				}
 
 				const defs = terms.map(({ title, definition}) => `<dt>${title}</dt><dd>${definition}</dd>`).join("");
 
-				return `<dl>${defs}</dl>`;
+				return `<dl>${defs}</dl>\n`;
 			};
 		},
 
@@ -85,15 +96,23 @@ const createMustacheOptions = config => {
 		},
 
 		aside() {
-			return (text, render) => `<aside>${render(text)}</aside>`;
+			return (text, render) => `<aside>\n\n${render(text)}\n\n</aside>\n`;
 		},
 
 		ref() {
 			return text => {
-				const { title, url } = config.references.find(x => x.id === text);
+				const { title, url } = byId("references", text);
 
 				return `[${title}](${url})`;
 			}
+		},
+
+		page() {
+			return text => {
+				const { title, url } = byId("pages", text);
+
+				return `[${title}](../${url})`;
+			};
 		}
 	}
 };
@@ -131,17 +150,20 @@ const config = yaml.parse(await fs.readFile(paths.configPath, "utf8"));
 		page: await fs.readFile(pathLib.join(paths.templatesDir, "page.html"), "utf8"),
 	};
 
+	for (const page of config.pages) {
+		page.url = page.srcPath.replace(".md", "");
+	}
+
 	console.log("Creating build directory");
 	await ensureDir(paths.buildDir);
 
-	for await (const page of config.pages) {
+	for (const page of config.pages) {
 		console.log(`Building ${page.srcPath}`);
 
 		const markdownAndMustache = await fs.readFile(pathLib.resolve(paths.notesDir, page.srcPath), "utf8");
 		const markdown = mustache.render(markdownAndMustache, mustacheOptions);
 
 		page.body = marked.parse(markdown);
-		page.url = page.srcPath.replace(".md", "");
 
 		const pageHtml = mustache.render(templates.page, { ...page, ...mustacheOptions });
 		await ensureDir(pathLib.join(paths.buildDir, page.url));

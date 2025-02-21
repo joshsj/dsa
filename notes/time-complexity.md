@@ -133,7 +133,7 @@ then an algorithm can be chosen to optimise for this scenario.
 
 {{#aside}}
 
-See "The Average Case" in {{#ref}}commonSense{{/ref}} for a breakdown of insertion vs. selection sort
+See "The Average Case" in {{#ref}}common-sense{{/ref}} for a breakdown of insertion vs. selection sort
 in different expected scenarios.
 
 {{/aside}}

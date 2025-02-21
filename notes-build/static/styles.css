@@ -60,6 +60,15 @@ ul > li::before {
 	content: "~ ";
 }
 
+table {
+	border-spacing: 0.5rem 0;
+	margin-inline: -0.5rem;
+}
+
+th {
+	text-align: left;
+}
+
 pre {
 	overflow-x: auto;
 }

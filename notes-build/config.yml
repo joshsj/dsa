@@ -2,26 +2,46 @@ title: Data Structures and Algorithms
 repo: https://github.com/joshsj/dsa
 
 references:
-  - id: lastAlgo
+  - id: last-algo
     title: The Last Algorithms Course You'll Need
     by: ThePrimeagen
     url: https://frontendmasters.com/courses/algorithms
 
-  - id: commonSense
+  - id: common-sense
     title: A Common-Sense Guide to Data Structures and Algorithms
     by: Jay Wengrow
     url: https://www.oreilly.com/library/view/a-common-sense-guide/9781680502794/
+
+  - id: ds-ucsd
+    title: Data Structures at USDC
+    by: Niema Moshiri
+    url: https://cogniterra.org/course/330
 
 pages:
   - id: time-complexity
     title: Time Complexity
     srcPath: time-complexity.md
 
+  - id: hash-functions
+    title: Hash Functions
+    srcPath: hash-functions.md
+
   - id: hash-tables
     title: Hash Tables
     srcPath: hash-tables.md
 
 terms:
+  - id: hash-coll
+    title: Hash Collision
+    definition: >-
+      A value that is produced by the hash function for different inputs.
+
+  - id: hash-func
+    title: Hash Function
+    definition: >-
+      A deterministic, consistent function that maps data of an arbitrary length
+      to a fixed length.
+
   - id: load-factor
     title: Load Factor
     definition: >-
