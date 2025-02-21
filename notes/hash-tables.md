@@ -30,37 +30,45 @@ rehashed. However, the average-case of {{#bigo}}1{{/bigo}} is accepted because
 a good hash function and good handling of load avoids the worst-case scenario.
 {{/aside}}
 
-## Handling Collisions
+## Handling Collisisions
 
-{{! TODO load factor }}
+Even a perfectly-distributed hash function and reducer will encounter clashing
+indexes.
 
-We can control two aspects of hash tables to minimise collisions: the size of
-the backing array and the hash function itself.
+## Open Addressing
 
-There are four categories of collision resolution mechanisms:
+Open addressing uses an algorithm to determine the index for a given key, not
+just a hash and reducer function.
 
-{{#include}}@notes/hash-tables/collisions.html{{/include}}
+This involves "probing" the backing array for an available index if the
+immediate cell is populated using one of many strategies:
 
-### Linear Probing
+- Linear probing walks the array by a fixed offset, usually 1, until an unused
+cell is found.
+- Double hashing uses a second hash function to calculate the offset.
 
-Open addressing, closed hashing.
+Open addressing has significant impact on the appropriate load factor for the
+hash table, as all elements are stored in the backing array directly.
+Implementations using open addressing typically maintain a load factor of 0.6
+to 0.75.
 
-When an index collides, subsequent indexes are searched for an unused cell. If
-found, the value is stored, else the backing array is resized and its items
-reinserted to minimises previous collisions.
+## Separate Chaining
 
-When accessing the structure, the array must be walked in the same fashion. The
-"needle" key is hashed and reduced to its index, then each key stored from this
-index is compared to the needle directly until an equal value is found (or
-not).
+Separate chaining stores an additional data structure in each bucket instead of
+the key/value, typically a linked list.
 
-By comparing unhashed keys, collisions are removed from the equation.
+Compared to open addressing, only the hash function determines the index for a
+key - no algorithm is needed. To find an entry, the linked list stored at the index is
+walked instead.
 
-## Double Hashing
+Load factor is not a critical issue for separate chaining because the linked
+lists can continue to grow. For best performance, it should be between 1 and 3
+to balances the extra computation of resizing and rehashing against walking the
+chained entries.
 
-Double hashing follows the same approach as linear probing, but uses a
-subsequent hash function to calculate the offset from the colliding index,
-instead of the walking algorithm.
+{{#aside}}
 
-This avoids the problem of clumping with linear probing, which is statistically
-likely (apparently). A common choice is {{#math}}1 + \frac{K}{M} \mod{(M - 1)}{{/math}}.
+A load factor greater than 1 is possible because mutliple values are stored at a single index.
+
+{{/aside}}
+
