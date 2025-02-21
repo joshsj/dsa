@@ -36,11 +36,11 @@ const createMustacheOptions = config => {
 	// Render functions append \n to ensure markdown renderer will not preserve the source
 	return {
 		math() {
-			return (text, render) => katex.renderToString(render(text));
+			return (text) => katex.renderToString(text);
 		},
 
 		dmath() {
-			return (text, render) => katex.renderToString(render(text), { displayMode: true });
+			return (text) => katex.renderToString(text, { displayMode: true });
 		},
 
 		bigo() {

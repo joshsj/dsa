@@ -24,11 +24,10 @@ the capacity of the backing structure, modulo being a simple option.
 
 This approach gives a time complexity of {{#bigo}}1{{/bigo}}.
 
-{{#aside}}
-The worst-case is technically {{#bigo}}\log{n}{{/bigo}} or {{#bigo}}n{{/bigo}}:
-when collisions require the hash table to be resized and rehashed. However, the
-average-case of {{#bigo}}1{{/bigo}} is accepted because a good hash function
-and good handling of load avoids the worst-case scenario.
+{{#aside}} The worst-case is technically {{#bigo}}\log{n}{{/bigo}} or
+{{#bigo}}n{{/bigo}}: when collisions require the hash table to be resized and
+rehashed. However, the average-case of {{#bigo}}1{{/bigo}} is accepted because
+a good hash function and good handling of load avoids the worst-case scenario.
 {{/aside}}
 
 ## Handling Collisions
@@ -50,10 +49,18 @@ When an index collides, subsequent indexes are searched for an unused cell. If
 found, the value is stored, else the backing array is resized and its items
 reinserted to minimises previous collisions.
 
-When accessing the structure, the array must be walked in the same fashion.
-The "needle" key is hashed and reduced to its index, then each key stored from this index is
-compared to the needle directly until an equal value is found (or not).
+When accessing the structure, the array must be walked in the same fashion. The
+"needle" key is hashed and reduced to its index, then each key stored from this
+index is compared to the needle directly until an equal value is found (or
+not).
 
 By comparing unhashed keys, collisions are removed from the equation.
 
+## Double Hashing
 
+Double hashing follows the same approach as linear probing, but uses a
+subsequent hash function to calculate the offset from the colliding index,
+instead of the walking algorithm.
+
+This avoids the problem of clumping with linear probing, which is statistically
+likely (apparently). A common choice is {{#math}}1 + \frac{K}{M} \mod{(M - 1)}{{/math}}.
