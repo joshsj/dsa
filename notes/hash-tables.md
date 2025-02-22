@@ -35,7 +35,7 @@ a good hash function and good handling of load avoids the worst-case scenario.
 Even a perfectly-distributed hash function and reducer will encounter clashing
 indexes.
 
-## Open Addressing
+### Open Addressing
 
 Open addressing uses an algorithm to determine the index for a given key, not
 just a hash and reducer function.
@@ -52,7 +52,7 @@ hash table, as all elements are stored in the backing array directly.
 Implementations using open addressing typically maintain a load factor of 0.6
 to 0.75.
 
-## Separate Chaining
+### Separate Chaining
 
 Separate chaining stores an additional data structure in each bucket instead of
 the key/value, typically a linked list.
