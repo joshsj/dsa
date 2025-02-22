@@ -33,6 +33,16 @@ const createMustacheOptions = config => {
         return config[prop].find(x => x.id === id) || frow(`Could not find ${id} in ${prop}`);
     };
 
+	const renamed = text => {
+		const [id, rename, ...rest] = text.split(":").map(x => x.trim());
+
+		if (rest.length) {
+			throw `'${text}' is malformed`;
+		}
+
+		return { id, rename };
+	};
+
 	// Render functions append \n to ensure markdown renderer will not preserve the source
 	return {
 		math() {
@@ -48,11 +58,7 @@ const createMustacheOptions = config => {
 		},
 
 		dfn() {
-			return id => {
-				const { title } = byId("terms", id);
-
-				return `<a href="../#terminology"><dfn>${title}</dfn></a>\n`;
-			};
+			return id => `<dfn>${byId("terms", id).title.toLowerCase()}</dfn>`;
 		},
 
 		dl() {
@@ -109,9 +115,10 @@ const createMustacheOptions = config => {
 
 		page() {
 			return text => {
-				const { title, url } = byId("pages", text);
+				const { id, rename } = renamed(text);
+				const { title, url } = byId("pages", id);
 
-				return `[${title}](../${url})`;
+				return `[${rename || title.toLowerCase()}](../${url})`;
 			};
 		}
 	}
@@ -138,12 +145,13 @@ const paths = (() => {
 	};
 })();
 
-const config = yaml.parse(await fs.readFile(paths.configPath, "utf8"));
 
 (async () => {
+	const config = yaml.parse(await fs.readFile(paths.configPath, "utf8"));
+
 	console.log("Paths", paths);
 
-	const mustacheOptions = createMustacheOptions(config);
+	const mustacheContext = { ...config, ...createMustacheOptions(config) };
 
 	const templates = {
 		index: await fs.readFile(pathLib.join(paths.templatesDir, "index.html"), "utf8"),
@@ -161,11 +169,11 @@ const config = yaml.parse(await fs.readFile(paths.configPath, "utf8"));
 		console.log(`Building ${page.srcPath}`);
 
 		const markdownAndMustache = await fs.readFile(pathLib.resolve(paths.notesDir, page.srcPath), "utf8");
-		const markdown = mustache.render(markdownAndMustache, mustacheOptions);
+		const markdown = mustache.render(markdownAndMustache, mustacheContext);
 
 		page.body = marked.parse(markdown);
 
-		const pageHtml = mustache.render(templates.page, { ...page, ...mustacheOptions });
+		const pageHtml = mustache.render(templates.page, { this: page, ...mustacheContext, });
 		await ensureDir(pathLib.join(paths.buildDir, page.url));
 
 		console.log(`Writing ${page.url}`);
@@ -173,7 +181,7 @@ const config = yaml.parse(await fs.readFile(paths.configPath, "utf8"));
 	}
 
 	console.log("Building index.html");
-	const indexHtml = mustache.render(templates.index, { ...config, ...mustacheOptions });
+	const indexHtml = mustache.render(templates.index, mustacheContext);
 
 	console.log("Writing index.html");
 	await fs.writeFile(pathLib.join(paths.buildDir, "index.html"), indexHtml, "utf8");

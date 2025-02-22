@@ -12,23 +12,23 @@ body {
 	font-family: Inter, -apple-system, BlinkMacSystemFont, avenir next, avenir,
 	segoe ui, helvetica neue, helvetica, Cantarell, Ubuntu, roboto, noto,
 	arial, sans-serif;
-	font-size: 1rem;
 	font-weight: 400;
-	line-height: 1.7;
-	max-width: 40rem;
-	margin: 0 auto 2rem;
+	line-height: 1.6;
 	color: #333;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+	text-rendering: optimizeLegibility;
+
+	max-width: 40rem; margin: 0 auto 2rem;
 }
 
 a {
-	color: inherit;
 	text-underline-offset: 0.1em;
 }
 
 h1, h2, h3, h4 {
 	line-height: 1.1;
 	font-weight: 400;
-	letter-spacing: -0.02em;
 }
 
 h1 {
@@ -60,6 +60,10 @@ ul > li::before {
 	content: "~ ";
 }
 
+li > a:only-child {
+    text-decoration: none;
+}
+
 table {
 	border-spacing: 0.5rem 0;
 	margin-inline: -0.5rem;
@@ -71,6 +75,10 @@ th {
 
 pre {
 	overflow-x: auto;
+}
+
+dt, dfn {
+	font-style: italic;
 }
 
 aside {

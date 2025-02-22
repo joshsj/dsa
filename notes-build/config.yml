@@ -17,18 +17,28 @@ references:
     by: Niema Moshiri
     url: https://cogniterra.org/course/330
 
+  - id: hash-table-wiki
+    title: Hash table
+    by: Wikipedia
+    url: https://en.wikipedia.org/wiki/Hash_table
+
 pages:
   - id: time-complexity
     title: Time Complexity
     srcPath: time-complexity.md
 
+  - id: array-lists
+    title: Array Lists
+    srcPath: array-lists.md
+    impl: array-list.zig
+
   - id: hash-functions
     title: Hash Functions
     srcPath: hash-functions.md
 
-  - id: hash-tables
-    title: Hash Tables
-    srcPath: hash-tables.md
+  - id: hash-maps-sets
+    title: Hash Maps/Sets
+    srcPath: hash-maps-sets.md
 
 terms:
   - id: hash-coll
@@ -46,4 +56,5 @@ terms:
     title: Load Factor
     definition: >-
       The ratio of elements to capacity in a data structure.
+
 
