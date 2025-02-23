@@ -133,15 +133,17 @@ const ensureDir = async dir => {
 const paths = (() => {
 	const root = import.meta.dirname;
 	const p = (...parts) => pathLib.resolve(root, ...parts);
+
 	const buildDir = process.argv[2] || p("build");
+	const notesDir = p("..", "notes");
 
 	return {
 		root,
 		buildDir,
-		notesDir: p("..", "notes"),
+		notesDir,
 		templatesDir: p("templates"),
 		staticDir: p("static"),
-		configPath: p("config.yml"),
+		configPath: pathLib.resolve(notesDir, "config.yml"),
 	};
 })();
 
