@@ -72,7 +72,12 @@ const createMustacheOptions = config => {
 					terms = config.terms.filter(x => ids.includes(x.id));
 				}
 
-				const defs = terms.map(({ title, definition}) => `<dt>${title}</dt><dd>${definition}</dd>`).join("");
+				const defs = terms.map(({ title, definition, see }) => {
+					// TODO: idk how I wan't this to look, title attr will do for now
+					const seeDefs = see?.length ? "See: " + see.map(x => byId("terms", x).title).join(", ") : "";
+
+					return `<dt title="${seeDefs}">${title}</dt><dd>${definition}</dd>`;
+				}).join("");
 
 				return `<dl>${defs}</dl>\n`;
 			};

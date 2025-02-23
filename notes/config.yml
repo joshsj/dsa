@@ -40,6 +40,7 @@ pages:
     title: Hash Maps/Sets
     srcPath: hash-maps-sets.md
 
+# TODO: should these be in sentence case or title case?
 terms:
   - id: hash-coll
     title: Hash Collision
@@ -57,4 +58,21 @@ terms:
     definition: >-
       The ratio of elements to capacity in a data structure.
 
+  - id: linear-ds
+    title: Linear Data Structure
+    definition: >-
+      A data structure that stores a sequence of values.
+
+      E.g., array lists, linked lists, stacks, and queues.
+    see:
+      - non-linear-ds
+
+  - id: non-linear-ds
+    title: Non-Linear Data Structure
+    definition: >-
+      A data structure that stores a hierarchy of values.
+
+      E.g., trees and graphs.
+    see:
+      - linear-ds
 
