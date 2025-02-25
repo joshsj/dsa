@@ -112,9 +112,10 @@ const createMustacheOptions = config => {
 
 		ref() {
 			return text => {
-				const { title, url } = byId("references", text);
+				const { id, rename } = renamed(text);
+				const { title, url } = byId("references", id);
 
-				return `[${title}](${url})`;
+				return `[${rename || title}](${url})`;
 			}
 		},
 

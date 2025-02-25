@@ -22,6 +22,11 @@ references:
     by: Wikipedia
     url: https://en.wikipedia.org/wiki/Hash_table
 
+  - id: recursion-wiki
+    title: Recursion
+    by: Wikipedia
+    url: https://en.wikipedia.org/wiki/Recursion
+
 pages:
   - id: time-complexity
     title: Time Complexity
@@ -39,6 +44,10 @@ pages:
   - id: hash-maps-sets
     title: Hash Maps/Sets
     srcPath: hash-maps-sets.md
+
+  - id: recursion
+    title: Recursion
+    srcPath: recursion.md
 
 # TODO: should these be in sentence case or title case?
 terms:
@@ -75,4 +84,9 @@ terms:
       E.g., trees and graphs.
     see:
       - linear-ds
+
+  - id: recursion
+    title: Recursion
+    definition: >-
+      A process which depends on a simpler or previous version of itself.
 
