@@ -18,7 +18,8 @@ body {
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
 	text-rendering: optimizeLegibility;
-	max-width: 40rem; margin: 0 auto 2rem;
+	max-width: 40rem;
+	margin: 0 auto 2rem;
 }
 
 a {

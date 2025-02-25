@@ -35,6 +35,12 @@ for how this performance can be reclaimed.
 Note that recursion vs. iteration only applies to the implementation of an
 algorithm and therefore does not affect its Big O.
 
+## Safety
+
+Where iteration has infinite loops, recursion has call stack errors.
+
+Both are bad for their own reasons, just write better code.
+
 ### Simplicity
 
 Many algorithms are more simple to express recursively instead of iteratively
@@ -55,11 +61,18 @@ Converting the implementation to be iterative would require:
 - Some conditions to terminate the algorithm &mdash; either in the loop
 condition or using `if` + `break`
 
-{{! TODO examples
-
 ## Thinking recursively
 
-Pre, recurse, post
+When using recursion, the recursive step can be broken down into three
+sub-steps:
 
-}}
+- Pre: what happens before recurring
+- Recurse: self-explanatory
+- Post: what happens after recurring
+
+Pathing algorithms are a good example of this:
+
+```zig
+// TODO
+```
 
