@@ -22,6 +22,11 @@ body {
 	margin: 0 auto 2rem;
 }
 
+::selection {
+    background: #303030;
+    color: white;
+}
+
 a {
 	text-underline-offset: 0.1em;
 }
