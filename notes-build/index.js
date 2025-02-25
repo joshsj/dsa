@@ -58,7 +58,11 @@ const createMustacheOptions = config => {
 		},
 
 		dfn() {
-			return id => `<dfn>${byId("terms", id).title.toLowerCase()}</dfn>`;
+			return id => {
+				const { title, definition } = byId("terms", id);
+
+                return `<dfn title="${definition}">${title.toLowerCase()}</dfn>`;
+            };
 		},
 
 		dl() {
@@ -122,9 +126,10 @@ const createMustacheOptions = config => {
 		page() {
 			return text => {
 				const { id, rename } = renamed(text);
-				const { title, url } = byId("pages", id);
+				const { title, url, hidden } = byId("pages", id);
+				const displayText = rename || title.toLowerCase();
 
-				return `[${rename || title.toLowerCase()}](../${url})`;
+				return !hidden ? `[${displayText}](../${url})` : displayText;
 			};
 		}
 	}

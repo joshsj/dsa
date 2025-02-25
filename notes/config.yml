@@ -1,6 +1,38 @@
 title: Data Structures and Algorithms
 repo: https://github.com/joshsj/dsa
 
+pages:
+  - id: array-lists
+    title: Array Lists
+    srcPath: array-lists.md
+    impl: array-list.zig
+    hidden: true
+
+  - id: graphs
+    title: Graphs
+    srcPath: graphs.md
+    hidden: true
+
+  - id: hash-functions
+    title: Hash Functions
+    srcPath: hash-functions.md
+
+  - id: hash-maps-sets
+    title: Hash Maps/Sets
+    srcPath: hash-maps-sets.md
+
+  - id: recursion
+    title: Recursion
+    srcPath: recursion.md
+
+  - id: time-complexity
+    title: Time Complexity
+    srcPath: time-complexity.md
+
+  - id: trees
+    title: Trees
+    srcPath: trees.md
+
 references:
   - id: last-algo
     title: The Last Algorithms Course You'll Need
@@ -27,48 +59,25 @@ references:
     by: Wikipedia
     url: https://en.wikipedia.org/wiki/Recursion
 
-pages:
-  - id: time-complexity
-    title: Time Complexity
-    srcPath: time-complexity.md
-
-  - id: array-lists
-    title: Array Lists
-    srcPath: array-lists.md
-    impl: array-list.zig
-
-  - id: hash-functions
-    title: Hash Functions
-    srcPath: hash-functions.md
-
-  - id: hash-maps-sets
-    title: Hash Maps/Sets
-    srcPath: hash-maps-sets.md
-
-  - id: recursion
-    title: Recursion
-    srcPath: recursion.md
-
-# TODO: should these be in sentence case or title case?
 terms:
   - id: hash-coll
-    title: Hash Collision
+    title: Hash collision
     definition: >-
       A value that is produced by the hash function for different inputs.
 
   - id: hash-func
-    title: Hash Function
+    title: Hash function
     definition: >-
       A deterministic, consistent function that maps data of an arbitrary length
       to a fixed length.
 
   - id: load-factor
-    title: Load Factor
+    title: Load factor
     definition: >-
       The ratio of elements to capacity in a data structure.
 
   - id: linear-ds
-    title: Linear Data Structure
+    title: Linear data structure
     definition: >-
       A data structure that stores a sequence of values.
 
@@ -77,7 +86,7 @@ terms:
       - non-linear-ds
 
   - id: non-linear-ds
-    title: Non-Linear Data Structure
+    title: Non-Linear data structure
     definition: >-
       A data structure that stores a hierarchy of values.
 
@@ -89,4 +98,5 @@ terms:
     title: Recursion
     definition: >-
       A process which depends on a simpler or previous version of itself.
+
 
