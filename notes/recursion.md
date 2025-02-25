@@ -35,7 +35,7 @@ for how this performance can be reclaimed.
 Note that recursion vs. iteration only applies to the implementation of an
 algorithm and therefore does not affect its Big O.
 
-## Safety
+### Safety
 
 Where iteration has infinite loops, recursion has call stack errors.
 
