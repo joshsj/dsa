@@ -8,6 +8,14 @@ pages:
     impl: array-list.zig
     hidden: true
 
+  - id: binary-trees
+    title: Binary Trees
+    srcPath: binary-trees.md
+
+  - id: bst
+    title: Binary Search Trees
+    srcPath: binary-search-trees.md
+
   - id: graphs
     title: Graphs
     srcPath: graphs.md
@@ -21,17 +29,18 @@ pages:
     title: Hash Maps/Sets
     srcPath: hash-maps-sets.md
 
+  - id: heaps
+    title: Heaps
+    srcPath: heaps.md
+
   - id: recursion
     title: Recursion
     srcPath: recursion.md
+    hidden: true
 
   - id: time-complexity
     title: Time Complexity
     srcPath: time-complexity.md
-
-  - id: trees
-    title: Trees
-    srcPath: trees.md
 
 references:
   - id: last-algo

@@ -30,7 +30,7 @@ const createMustacheOptions = config => {
 	const byId = (prop, id) => {
 		id = id.trim();
 
-        return config[prop].find(x => x.id === id) || frow(`Could not find ${id} in ${prop}`);
+        return config[prop].find(x => x.id === id) || frow(`config.${prop}["${id}"] does not resolve to a value`);
     };
 
 	const renamed = text => {
@@ -54,7 +54,7 @@ const createMustacheOptions = config => {
 		},
 
 		bigo() {
-			return (text, render) => this.math()(`O(${text})`, render);
+			return (text, render) => this.math()(`\\mathcal{O}(${text})`, render);
 		},
 
 		dfn() {
@@ -124,10 +124,10 @@ const createMustacheOptions = config => {
 		},
 
 		page() {
-			return text => {
+			return (text, render) => {
 				const { id, rename } = renamed(text);
 				const { title, url, hidden } = byId("pages", id);
-				const displayText = rename || title.toLowerCase();
+				const displayText = rename ? render(rename) : title.toLowerCase();
 
 				return !hidden ? `[${displayText}](../${url})` : displayText;
 			};
