@@ -32,6 +32,7 @@ pages:
   - id: heaps
     title: Heaps
     srcPath: heaps.md
+    hidden: true
 
   - id: recursion
     title: Recursion
