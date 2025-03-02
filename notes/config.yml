@@ -37,7 +37,6 @@ pages:
   - id: recursion
     title: Recursion
     srcPath: recursion.md
-    hidden: true
 
   - id: time-complexity
     title: Time Complexity

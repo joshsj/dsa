@@ -5,12 +5,13 @@
   "type": "module",
   "scripts": {
     "build": "node index.js",
-    "dev": "npx nodemon -e md,html,css,js,yml --watch .. --ignore build"
+    "dev": "npx nodemon --ext md,html,css,js,yml --watch .. --ignore build --exec \"npm run build && http-server build\""
   },
   "author": "",
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "http-server": "^14.1.1",
     "katex": "^0.16.21",
     "marked": "^15.0.6",
     "mustache": "^4.2.0",
