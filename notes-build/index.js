@@ -181,12 +181,14 @@ const paths = (() => {
 	for (const page of config.pages) {
 		console.log(`Building ${page.srcPath}`);
 
+		const pageContext = { this: page, ...mustacheContext };
+
 		const markdownAndMustache = await fs.readFile(pathLib.resolve(paths.notesDir, page.srcPath), "utf8");
-		const markdown = mustache.render(markdownAndMustache, mustacheContext);
+		const markdown = mustache.render(markdownAndMustache, pageContext);
 
 		page.body = marked.parse(markdown);
 
-		const pageHtml = mustache.render(templates.page, { this: page, ...mustacheContext, });
+		const pageHtml = mustache.render(templates.page, pageContext);
 		await ensureDir(pathLib.join(paths.buildDir, page.url));
 
 		console.log(`Writing ${page.url}`);

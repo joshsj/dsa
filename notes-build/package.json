@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "build": "node index.js",
-    "dev": "npx nodemon --ext md,html,css,js,yml --watch .. --ignore build --exec \"npm run build && http-server build -c-1\""
+    "dev": "npx nodemon --ext md,html,css,js,ts,yml --watch .. --ignore build --exec \"npm run build && http-server build -c-1\""
   },
   "author": "",
   "license": "ISC",

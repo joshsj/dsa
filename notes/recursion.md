@@ -63,16 +63,38 @@ condition or using `if` + `break`
 
 ## Thinking recursively
 
-When using recursion, the recursive step can be broken down into three
-sub-steps:
+When using recursion, the recursive step can be **broken down into three
+sub-steps**:
 
 - Pre: what happens before recurring
 - Recurse: self-explanatory
 - Post: what happens after recurring
 
-Pathing algorithms are a good example of this:
+Pathing algorithms are a good example of this.
+
+{{! TODO
 
 ```zig
 // TODO
 ```
+
+}}
+
+Recursive functions also generally **accept invalid values**, as opposed to
+validating them before the recursive call. This is a better approach because:
+
+1. it allows the recurive to handle the invalid values as part of its base
+case and
+2. the recurse step is simplified.
+
+Most algorithms on node-based data structures follow this pattern:
+
+```ts
+{{#include}}@notes/recursion/find.ts{{/include}}
+```
+
+By consequence, recursive functions may have **private and public
+equivalents**, where the public function does not have parameters for the
+potentially-invalid values. This keeps the public interface clean and the
+responsibility of providing the inital value an implementation detail.
 
