@@ -13,6 +13,9 @@ conventionally.
 
 A binary tree is balanced when any node's left and right children have the same height.
 
+A binary tree is complete when the children of all nodes are left-most; i.e.,
+if a node has only one child, it must be `left`.
+
 ## Complexity
 
 Binary trees have an additional time complexity based on their height

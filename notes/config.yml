@@ -32,7 +32,7 @@ pages:
   - id: heaps
     title: Heaps
     srcPath: heaps.md
-    hidden: true
+    impl: heap.zig
 
   - id: recursion
     title: Recursion
