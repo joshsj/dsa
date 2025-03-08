@@ -1,7 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
 
 html {
-	margin: 0 1rem;
+	margin: 0 1.5rem;
 }
 
 * {
@@ -9,7 +9,9 @@ html {
 }
 
 body {
-	font-family: Inter;
+	font-family: Inter, -apple-system, BlinkMacSystemFont, avenir next, avenir,
+		segoe ui, helvetica neue, Cantarell, Ubuntu, roboto, noto, helvetica,
+		arial, sans-serif;
 	line-height: 1.6;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
