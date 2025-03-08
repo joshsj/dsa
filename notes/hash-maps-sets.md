@@ -64,7 +64,7 @@ index is walked instead.
 
 Load factor is not a critical issue for separate chaining because the linked
 lists can continue to grow. For best performance, it should be between 1 and 3
-to balances the extra computation of resizing and rehashing against walking the
+to balance the extra computation of resizing and rehashing against walking the
 chained entries.
 
 {{#aside}}
