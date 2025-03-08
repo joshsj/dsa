@@ -1,5 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;1,14..32,400&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,100..900;1,100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
 
 html {
 	margin: 0 1rem;
@@ -10,14 +9,12 @@ html {
 }
 
 body {
-	font-family: "Noto Serif", Iowan Old Style, Apple Garamond, Baskerville,
-		Times New Roman, Droid Serif, Times, Source Serif Pro, serif, Apple
-		Color Emoji, Segoe UI Emoji, Segoe UI Symbol;; line-height: 1.6;
-	background: #fafafa;
+	font-family: Inter;
+	line-height: 1.6;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
 	text-rendering: optimizeLegibility;
-	max-width: 40rem;
+	max-width: 37rem;
 	margin: 0 auto 2rem;
 }
 
@@ -30,9 +27,14 @@ a {
 	text-underline-offset: 0.1em;
 }
 
+strong {
+	font-weight: 600;
+}
+
 h1, h2, h3, h4 {
 	line-height: 1.1;
-	letter-spacing: -0.04em;
+	letter-spacing: -0.0em;
+	font-weight: 600;
 }
 
 h1 {
