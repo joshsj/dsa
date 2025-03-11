@@ -24,7 +24,7 @@ body {
 }
 
 ::selection {
-    background: #303030;
+    background: oklch(0.372 0.044 257.287);
     color: white;
 }
 
