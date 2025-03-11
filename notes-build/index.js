@@ -10,6 +10,21 @@ function frow(err) {
 	throw err;
 }
 
+const copyFiles = async (fromDir, toDir) => {
+	if (!fsSync.existsSync(fromDir)) {
+		return;
+	}
+
+	const fileNames = await fs.readdir(fromDir, "utf8");
+	console.log({fromDir, fileNames});
+
+	await Promise.all(
+		fileNames.map(
+			x => fs.copyFile(pathLib.join(fromDir, x), pathLib.join(toDir, x))
+		)
+	);
+}
+
 const createMustacheOptions = config => {
 	const aliases = {
 		"@lib": "../lib",
@@ -110,6 +125,10 @@ const createMustacheOptions = config => {
 
 		},
 
+		figure() {
+			return (text, render) => `<figure>\n\n${render(text)}\n\n</figure>\n`;
+		},
+
 		aside() {
 			return (text, render) => `<aside>\n\n${render(text)}\n\n</aside>\n`;
 		},
@@ -193,6 +212,12 @@ const paths = (() => {
 
 		console.log(`Writing ${page.url}`);
 		await fs.writeFile(pathLib.join(paths.buildDir, page.url, "index.html"), pageHtml, "utf8");
+
+		console.log(`Copying static files for ${page.srcPath}`);
+		await copyFiles(
+			pathLib.join(paths.notesDir, page.url),
+			pathLib.join(paths.buildDir, page.url)
+		);
 	}
 
 	console.log("Building index.html");
@@ -202,11 +227,5 @@ const paths = (() => {
 	await fs.writeFile(pathLib.join(paths.buildDir, "index.html"), indexHtml, "utf8");
 
 	console.log("Copying static files");
-	const staticFileNames = await fs.readdir(paths.staticDir, "utf8");
-
-	await Promise.all(
-		staticFileNames.map(
-			x => fs.copyFile(pathLib.join(paths.staticDir, x), pathLib.join(paths.buildDir, x))
-		)
-	);
+	await copyFiles(paths.staticDir, paths.buildDir);
 })();

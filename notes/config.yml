@@ -19,7 +19,6 @@ pages:
   - id: graphs
     title: Graphs
     srcPath: graphs.md
-    hidden: true
 
   - id: hash-functions
     title: Hash Functions
