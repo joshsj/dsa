@@ -12,6 +12,9 @@ body {
 	font-family: Inter, -apple-system, BlinkMacSystemFont, avenir next, avenir,
 		segoe ui, helvetica neue, Cantarell, Ubuntu, roboto, noto, helvetica,
 		arial, sans-serif;
+	/* Slate */
+	color: oklch(0.208 0.042 265.755);
+	background: oklch(0.984 0.003 247.858);
 	line-height: 1.6;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
@@ -85,14 +88,18 @@ pre {
 	overflow-x: auto;
 }
 
-pre:has(> code) {
-	background: #fafafa;
-	padding: 0.5em;
+pre:has(> code), .katex-display {
+	padding: 0.5em 1em;
+	border: 0.1em solid currentColor;
 }
 
-pre:has(> code), code {
-	background: #fafafa;
+pre:has(> code), code, .katex-display {
+	background: white;
 	border-radius: 0.25em;
+}
+
+.katex .katex-html > .newline {
+	margin-top: 0.5em;
 }
 
 dt, dfn {
