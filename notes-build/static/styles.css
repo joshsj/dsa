@@ -24,8 +24,8 @@ body {
 }
 
 ::selection {
-    background: oklch(0.372 0.044 257.287);
-    color: white;
+	background: oklch(0.372 0.044 257.287);
+	color: white;
 }
 
 a {
@@ -38,7 +38,6 @@ strong {
 
 h1, h2, h3, h4 {
 	line-height: 1.1;
-	letter-spacing: -0.0em;
 	font-weight: 600;
 }
 
@@ -53,26 +52,23 @@ h2 {
 h3 {
 	font-size: 1.3rem;
 }
-	
+
 article {
 	border-top: 0.15rem dashed #ccc;
 }
 
 ul, ol {
-  list-style-position: inside;
-  padding: 0;
+	list-style-position: inside;
+	padding: 0;
+	margin-inline: 0;
 }
 
 ul {
-	list-style-type: none;
-}
-
-ul > li::before {
-	content: "~ ";
+	list-style-type: "- ";
 }
 
 li > a:only-child:not(:hover) {
-    text-decoration: none;
+	text-decoration: none;
 }
 
 table {
@@ -93,13 +89,13 @@ figure {
 }
 
 pre:has(> code), .katex-display, figure {
-	padding: 0.5em 1em;
-	border: 0.1em solid currentColor;
+	padding: 0.5rem 1rem;
+	border: 0.1rem solid currentColor;
 }
 
 pre:has(> code), code, .katex-display, figure {
 	background: white;
-	border-radius: 0.25em;
+	border-radius: 0.25rem;
 }
 
 .katex .katex-html > .newline {
@@ -111,8 +107,8 @@ dt, dfn {
 }
 
 aside {
-    font-size: 0.9em;
-    padding-left: 1em;
-    border-left: 0.2rem solid oklch(0.869 0.022 252.894);
+	font-size: 0.9em;
+	padding-left: 1em;
+	border-left: 0.2rem solid oklch(0.869 0.022 252.894);
 }
 
