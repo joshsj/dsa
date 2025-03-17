@@ -15,7 +15,7 @@
 	<ul>
 	{{#pages}}
 		{{^hidden}}
-		<li><a href="{{url}}">{{title}}</a></li>
+		<li><a class="mask" href="{{url}}">{{title}}</a></li>
 		{{/hidden}}
 	{{/pages}}
 	</ul>
@@ -24,10 +24,10 @@
 	<p>Resources:<p>
 
 	<ul>
-	<li><a href="{{repo}}">Repository</a></li>
+	<li><a class="mask" href="{{repo}}">Repository</a></li>
 
 	{{#references}}
-	<li><a href="{{url}}">{{title}} ({{by}})</a></li>
+	<li><a class="mask" href="{{url}}">{{title}} ({{by}})</a></li>
 	{{/references}}
 	</ul>
 	{{/references.length}}

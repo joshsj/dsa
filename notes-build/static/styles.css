@@ -24,12 +24,16 @@ body {
 }
 
 ::selection {
-	background: oklch(0.372 0.044 257.287);
+	background: oklch(0.446 0.043 257.281);
 	color: white;
 }
 
 a {
 	text-underline-offset: 0.1em;
+}
+
+a.mask:not(:hover) {
+	text-decoration: none;
 }
 
 strong {
@@ -65,10 +69,6 @@ ul, ol {
 
 ul {
 	list-style-type: "- ";
-}
-
-li > a:only-child:not(:hover) {
-	text-decoration: none;
 }
 
 table {

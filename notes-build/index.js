@@ -16,7 +16,6 @@ const copyFiles = async (fromDir, toDir) => {
 	}
 
 	const fileNames = await fs.readdir(fromDir, "utf8");
-	console.log({fromDir, fileNames});
 
 	await Promise.all(
 		fileNames.map(
@@ -65,7 +64,7 @@ const createMustacheOptions = config => {
 		},
 
 		dmath() {
-			return (text) => katex.renderToString(text, { displayMode: true });
+			return (text) => katex.renderToString(text.trim().replace(/[\r\n]+/, " "), { displayMode: true });
 		},
 
 		bigo() {

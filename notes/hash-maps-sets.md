@@ -31,6 +31,19 @@ hash function and good handling of load avoids the worst-case scenario.
 
 {{/aside}}
 
+## Load Factor
+
+Load factor is defined as:
+
+{{#dmath}}
+
+\alpha = \frac{n}{m}
+
+{{/dmath}}
+
+...where {{#math}}n{{/math}} is the number of cells occupied and {{#math}}m{{/math}}
+is the number of available cells.
+
 ## Handling Collisions
 
 Even a perfectly-distributed hash function and reducer will encounter clashing
@@ -59,7 +72,7 @@ Separate chaining stores an additional data structure in each bucket instead of
 the key/value, typically a linked list.
 
 Compared to open addressing, only the hash function determines the index for a
-key - no algorithm is needed. To find an entry, the linked list stored at the
+key &mdash; no algorithm is needed. To find an entry, the linked list stored at the
 index is walked instead.
 
 Load factor is not a critical issue for separate chaining because the linked

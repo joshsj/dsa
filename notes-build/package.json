@@ -9,7 +9,7 @@
   },
   "author": "",
   "license": "ISC",
-  "description": "",
+  "description": "A quick and easy build system for [/notes](/notes) using Markdown for the base\r markup and Moustache for extended functionality.",
   "dependencies": {
     "http-server": "^14.1.1",
     "katex": "^0.16.21",

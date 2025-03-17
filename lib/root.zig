@@ -19,6 +19,8 @@ test {
     _ = @import("queue.zig");
     _ = @import("stack.zig");
 
+    _ = @import("hash-map.zig");
+
     _ = @import("tests/list-adt.zig");
 }
 
