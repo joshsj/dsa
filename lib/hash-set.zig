@@ -6,7 +6,7 @@ const common = @import("common.zig");
 const Equal = common.Equal;
 const Hash = common.Hash;
 
-pub fn HashMap(comptime T: type) type {
+pub fn HashSet(comptime T: type) type {
     return struct {
         const DefaultCapacity = 4; // Picked at random
 
@@ -70,39 +70,39 @@ pub fn HashMap(comptime T: type) type {
     };
 }
 
-const TestMap = HashMap(usize);
+const TestSet = HashSet(usize);
 
-const testCtx = TestMap.Context {
+const testCtx = TestSet.Context {
     .equal = common.defaultEqual(usize),
     .hash = common.identity(usize),
 };
 
 test "init() intializes with empty buckets" {
-    var map = try TestMap.initCapacity(testing.allocator, testCtx, 3);
-    defer map.deinit();
+    var set = try TestSet.initCapacity(testing.allocator, testCtx, 3);
+    defer set.deinit();
 
     try testing.expectEqualSlices(
-        TestMap.Bucket, 
-        &[_]TestMap.Bucket { TestMap.Bucket.empty } ** 3,
-        map.buckets
+        TestSet.Bucket, 
+        &[_]TestSet.Bucket { TestSet.Bucket.empty } ** 3,
+        set.buckets
     );
 }
 
 test "add() to an empty bucket inserts at bucket index" {
-    var map = try HashMap(usize).initCapacity(testing.allocator, testCtx, 3);
-    defer map.deinit();
+    var set = try HashSet(usize).initCapacity(testing.allocator, testCtx, 3);
+    defer set.deinit();
 
-    const ret = try map.add(1);
+    const ret = try set.add(1);
 
     try testing.expect(ret);
     try testing.expectEqualSlices(
-        TestMap.Bucket, 
-        &([_]TestMap.Bucket { 
-            TestMap.Bucket.empty,
-            TestMap.Bucket { .full = .{ .value = 1, .hashValue = 1 } },
-            TestMap.Bucket.empty,
+        TestSet.Bucket, 
+        &([_]TestSet.Bucket { 
+            TestSet.Bucket.empty,
+            TestSet.Bucket { .full = .{ .value = 1, .hashValue = 1 } },
+            TestSet.Bucket.empty,
         }),
-        map.buckets
+        set.buckets
     );
 }
 
