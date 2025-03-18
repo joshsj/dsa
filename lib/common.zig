@@ -5,7 +5,7 @@ pub usingnamespace @import("common/slice-iterator.zig");
 pub usingnamespace @import("common/slice-search.zig");
 pub usingnamespace @import("common/slice-sort.zig");
 
-pub fn Identity(comptime T: type) fn(T) T {
+pub fn identity(comptime T: type) fn(T) T {
     return struct {
         fn f(t: T) T {
             return t;
