@@ -17,7 +17,7 @@ pub fn HashSet(comptime T: type) type {
         const Bucket = union(enum) {
             empty,
             deleted,
-            full: struct { value: T, hashValue: usize, }
+            full: struct { value: T, hash_value: usize, }
         };
 
         allocator: Allocator,
@@ -50,35 +50,50 @@ pub fn HashSet(comptime T: type) type {
         ///
         /// O(1)
         pub fn add(self: *Self, value: T) Allocator.Error!bool {
-            const hashValue = self.ctx.hash(value);
-            const origin = hashValue % self.buckets.len;
+            const hash_value = self.ctx.hash(value);
+            const head_i = hash_value % self.buckets.len;
+            var probe_i: usize = 0;
 
-            switch (self.buckets[origin]) {
-                .empty => {
-                    self.buckets[origin] = Bucket {
-                        .full = .{
-                            .value = value,
-                            .hashValue = hashValue
-                        }
-                    };
+            var first_deleted_i: ?usize = null;
 
-                    return true;
-                },
-                else => @panic("todo")
+            // TODO: optimize best-case
+            while (probe_i < self.buckets.len) : (probe_i += 1) {
+                const i = (head_i + probe_i) % self.buckets.len;
+
+                switch (self.buckets[i]) {
+                    .empty => {
+                        self.buckets[first_deleted_i orelse i] = Bucket {
+                            .full = .{ .value = value, .hash_value = hash_value }
+                        };
+
+                        return true;
+                    },
+
+                    .full => |full| if (full.hash_value == hash_value and self.ctx.equal(full.value, value)) return false,
+
+                    .deleted => if (first_deleted_i == null) { first_deleted_i = i; }
+                }
             }
+
+            @panic("todo resize");
         }
     };
 }
 
 const TestSet = HashSet(usize);
-
-const testCtx = TestSet.Context {
-    .equal = common.defaultEqual(usize),
-    .hash = common.identity(usize),
-};
+fn testSet(capacity: usize) Allocator.Error!TestSet {
+    return try TestSet.initCapacity(
+        testing.allocator,
+        TestSet.Context {
+            .equal = common.defaultEqual(usize),
+            .hash = common.identity(usize),
+        },
+        capacity
+    );
+}
 
 test "init() intializes with empty buckets" {
-    var set = try TestSet.initCapacity(testing.allocator, testCtx, 3);
+    var set = try testSet(3);
     defer set.deinit();
 
     try testing.expectEqualSlices(
@@ -88,8 +103,8 @@ test "init() intializes with empty buckets" {
     );
 }
 
-test "add() to an empty bucket inserts at bucket index" {
-    var set = try HashSet(usize).initCapacity(testing.allocator, testCtx, 3);
+test "add(value) inserts into bucket when value computes to an empty bucket" {
+    var set = try testSet(3);
     defer set.deinit();
 
     const ret = try set.add(1);
@@ -97,11 +112,77 @@ test "add() to an empty bucket inserts at bucket index" {
     try testing.expect(ret);
     try testing.expectEqualSlices(
         TestSet.Bucket, 
-        &([_]TestSet.Bucket { 
+        &[_]TestSet.Bucket { 
             TestSet.Bucket.empty,
-            TestSet.Bucket { .full = .{ .value = 1, .hashValue = 1 } },
+            TestSet.Bucket { .full = .{ .value = 1, .hash_value = 1 } },
             TestSet.Bucket.empty,
-        }),
+        },
+        set.buckets
+    );
+}
+
+test "add(value) does not insert when value is present at head bucket" {
+    var set = try testSet(3);
+    defer set.deinit();
+
+    _ = try set.add(1);
+    const ret = try set.add(1);
+
+    try testing.expect(!ret);
+    try testing.expectEqualSlices(
+        TestSet.Bucket, 
+        &[_]TestSet.Bucket { 
+            TestSet.Bucket.empty,
+            TestSet.Bucket { .full = .{ .value = 1, .hash_value = 1 } },
+            TestSet.Bucket.empty,
+        },
+        set.buckets
+    );
+}
+
+test "add(value) does not insert when value is present at probed bucket" {
+    var set = try testSet(5);
+    defer set.deinit();
+
+    _ = try set.add(6);
+    _ = try set.add(1);
+    const ret = try set.add(1);
+
+    try testing.expect(!ret);
+    try testing.expectEqualSlices(
+        TestSet.Bucket, 
+        &[_]TestSet.Bucket { 
+            TestSet.Bucket.empty,
+            TestSet.Bucket { .full = .{ .value = 6, .hash_value = 6 } },
+            TestSet.Bucket { .full = .{ .value = 1, .hash_value = 1 } },
+            TestSet.Bucket.empty,
+            TestSet.Bucket.empty,
+        },
+        set.buckets
+    );
+}
+
+// TODO: test for not inserting when value present beyond tombstones
+// TODO: test for inserting at tombstone when value not present
+
+test "add(value) inserts at next empty bucket when head bucket collides" {
+    var set = try testSet(5);
+    defer set.deinit();
+
+    _ = try set.add(1);
+    _ = try set.add(2);
+    const ret = try set.add(11);
+
+    try testing.expect(ret);
+    try testing.expectEqualSlices(
+        TestSet.Bucket, 
+        &[_]TestSet.Bucket { 
+            TestSet.Bucket.empty,
+            TestSet.Bucket { .full = .{ .value = 1, .hash_value = 1 } },
+            TestSet.Bucket { .full = .{ .value = 2, .hash_value = 2 } },
+            TestSet.Bucket { .full = .{ .value = 11, .hash_value = 11 } },
+            TestSet.Bucket.empty,
+        },
         set.buckets
     );
 }
