@@ -68,6 +68,7 @@ pub fn HashSet(comptime T: type) type {
                             .full = .{ .value = value, .hash_value = hash_value }
                         };
 
+                        self.len += 1;
                         return true;
                     },
 
@@ -80,10 +81,15 @@ pub fn HashSet(comptime T: type) type {
             @panic("todo resize");
         }
 
-        pub fn remove(self: Self, value: T) ?T {
+        pub fn remove(self: *Self, value: T) ?T {
+            if (self.len == 0) {
+                return null;
+            }
+
             const bucket_p = self.findBucket(value) orelse return null;
 
             defer bucket_p.* = .deleted;
+            defer self.len -= 1;
             return bucket_p.full.value;
         }
 
@@ -160,6 +166,7 @@ test "add(value) inserts into bucket when value computes to empty bucket" {
         },
         set.buckets
     );
+    try testing.expectEqual(1, set.len);
 }
 
 test "add(value) inserts into bucket when value computes to probed bucket" {
@@ -180,6 +187,7 @@ test "add(value) inserts into bucket when value computes to probed bucket" {
         },
         set.buckets
     );
+    try testing.expectEqual(2, set.len);
 }
 
 test "add(value) inserts into deleted bucket when value computes to probed bucket across deleted buckets" {
@@ -205,6 +213,7 @@ test "add(value) inserts into deleted bucket when value computes to probed bucke
         },
         set.buckets
     );
+    try testing.expectEqual(3, set.len);
 }
 
 test "add(value) does not insert when value is present at head bucket" {
@@ -224,6 +233,7 @@ test "add(value) does not insert when value is present at head bucket" {
         },
         set.buckets
     );
+    try testing.expectEqual(1, set.len);
 }
 
 test "add(value) does not insert when value is present at probed bucket" {
@@ -246,6 +256,7 @@ test "add(value) does not insert when value is present at probed bucket" {
         },
         set.buckets
     );
+    try testing.expectEqual(2, set.len);
 }
 
 test "add(value) does not insert when value is present at probed bucket across deleted buckets" {
@@ -271,6 +282,7 @@ test "add(value) does not insert when value is present at probed bucket across d
         },
         set.buckets
     );
+    try testing.expectEqual(2, set.len);
 }
 
 test "remove(value) marks the bucket as deleted when value present at head bucket" {
@@ -292,6 +304,7 @@ test "remove(value) marks the bucket as deleted when value present at head bucke
         },
         set.buckets
     );
+    try testing.expectEqual(0, set.len);
 }
 
 test "remove(value) marks the bucket as deleted when value present at probed bucket" {
@@ -316,6 +329,7 @@ test "remove(value) marks the bucket as deleted when value present at probed buc
         },
         set.buckets
     );
+    try testing.expectEqual(2, set.len);
 }
 
 test "remove(value) returns null when value not present" {
@@ -340,6 +354,7 @@ test "remove(value) returns null when value not present" {
         },
         set.buckets
     );
+    try testing.expectEqual(3, set.len);
 }
 
 test "has(value) returns true when value is present" {
