@@ -14,10 +14,11 @@ pub fn HashSet(comptime T: type) type {
 
         const Context = struct { hash: *const Hash(T), equal: *const Equal(T) };
 
+        const FullBucket = struct { value: T, hash_value: usize, };
         const Bucket = union(enum) {
             empty,
             deleted,
-            full: struct { value: T, hash_value: usize, }
+            full: FullBucket,
         };
 
         allocator: Allocator,
@@ -54,15 +55,15 @@ pub fn HashSet(comptime T: type) type {
             const head_i = hash_value % self.buckets.len;
             var probe_i: usize = 0;
 
-            var first_deleted_i: ?usize = null;
+            var first_deleted_p: ?*Bucket = null;
 
             // TODO: optimize best-case
             while (probe_i < self.buckets.len) : (probe_i += 1) {
-                const i = (head_i + probe_i) % self.buckets.len;
+                const bucket_p = &self.buckets[(head_i + probe_i) % self.buckets.len];
 
-                switch (self.buckets[i]) {
+                switch (bucket_p.*) {
                     .empty => {
-                        self.buckets[first_deleted_i orelse i] = Bucket {
+                        (first_deleted_p orelse bucket_p).* = Bucket {
                             .full = .{ .value = value, .hash_value = hash_value }
                         };
 
@@ -71,7 +72,7 @@ pub fn HashSet(comptime T: type) type {
 
                     .full => |full| if (full.hash_value == hash_value and self.ctx.equal(full.value, value)) return false,
 
-                    .deleted => if (first_deleted_i == null) { first_deleted_i = i; }
+                    .deleted => if (first_deleted_p == null) { first_deleted_p = bucket_p; }
                 }
             }
 
@@ -79,21 +80,31 @@ pub fn HashSet(comptime T: type) type {
         }
 
         pub fn remove(self: Self, value: T) ?T {
+            const bucket_p = self.findBucket(value) orelse return null;
+
+            defer bucket_p.* = .deleted;
+            return bucket_p.full.value;
+        }
+
+        pub fn has(self: Self, value: T) bool {
+            return self.findBucket(value) != null;
+        }
+
+        fn findBucket(self: Self, value: T) ?*Bucket {
             const hash_value = self.ctx.hash(value);
             const head_i = hash_value % self.buckets.len;
             
             var probe_i: usize = 0;
 
             while (probe_i < self.buckets.len) : (probe_i += 1) {
-                const i = (head_i + probe_i) % self.buckets.len;
+                const bucket_p = &self.buckets[(head_i + probe_i) % self.buckets.len];
 
-                switch (self.buckets[i]) {
+                switch (bucket_p.*) {
                     .empty => return null,
                     .deleted => {},
                     .full => |full| {
                         if (full.hash_value == hash_value and self.ctx.equal(full.value, value)) {
-                            defer self.buckets[i] = .deleted;
-                            return full.value;
+                            return bucket_p;
                         }
                     }
                 }
@@ -323,6 +334,26 @@ test "remove(value) returns null when value not present" {
         },
         set.buckets
     );
-
 }
 
+test "has(value) returns true when value is present" {
+    var set = try testSet(5);
+    defer set.deinit();
+
+    _ = try set.add(1);
+    _ = try set.add(2);
+    _ = try set.add(3);
+
+    try testing.expect(set.has(2));
+}
+
+test "has(value) returns false when value is not present" {
+    var set = try testSet(5);
+    defer set.deinit();
+
+    _ = try set.add(1);
+    _ = try set.add(2);
+    _ = try set.add(3);
+
+    try testing.expect(!set.has(5));
+}
