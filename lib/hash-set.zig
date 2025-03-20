@@ -9,6 +9,7 @@ const Hash = common.Hash;
 pub fn HashSet(comptime T: type) type {
     return struct {
         const DefaultCapacity = 4; // Picked at random
+        const LoadFactor: f32 = 0.75; // Stolen from the internet
 
         const Self = @This();
         const Iterator = @import("hash-set.iterator.zig").HashSetIterator(T);
@@ -34,11 +35,9 @@ pub fn HashSet(comptime T: type) type {
         pub fn initCapacity(allocator: Allocator, ctx: Context, capacity: usize) Allocator.Error!Self {
             const self = Self {
                 .allocator = allocator,
-                .buckets = try allocator.alloc(Bucket, capacity),
+                .buckets = try alloc(allocator, capacity),
                 .ctx = ctx,
             };
-
-            @memset(self.buckets, Bucket.empty);
 
             return self;
         }
@@ -52,6 +51,10 @@ pub fn HashSet(comptime T: type) type {
         ///
         /// O(1)
         pub fn add(self: *Self, value: T) Allocator.Error!bool {
+            if (self.loadFactor(1) > LoadFactor) {
+                try self.rehash();
+            }
+
             const hash_value = self.ctx.hash(value);
             const head_i = hash_value % self.buckets.len;
             var probe_i: usize = 0;
@@ -78,7 +81,7 @@ pub fn HashSet(comptime T: type) type {
                 }
             }
 
-            @panic("todo resize");
+            unreachable;
         }
 
         pub fn remove(self: *Self, value: T) ?T {
@@ -99,6 +102,37 @@ pub fn HashSet(comptime T: type) type {
 
         pub fn iter(self: Self) Iterator {
             return Iterator.init(self);
+        }
+
+        pub fn rehash(self: *Self) Allocator.Error!void {
+            const buckets = try alloc(self.allocator, self.buckets.len * 2);
+
+            for (self.buckets) |bucket| {
+                const full = if (bucket == .full) bucket.full else continue;
+
+                const head_i = full.hash_value % buckets.len;
+                var probe_i: usize = 0;
+
+                while (probe_i < buckets.len) : (probe_i += 1) {
+                    const bucket_p = &buckets[(head_i + probe_i) % buckets.len];
+
+                    if (bucket_p.* == .empty) {
+                        bucket_p.* = Bucket { .full = full };
+                        break;
+                    }
+                }
+            }
+
+            self.allocator.free(self.buckets);
+            self.buckets = buckets;
+        }
+
+        fn loadFactor(self: Self, plus: usize) f32 {
+            // TODO: not safe!
+            const len: f32 = @floatFromInt(self.len + plus);
+            const cap: f32 = @floatFromInt(self.buckets.len);
+
+            return len / cap;
         }
 
         fn bucketContaining(self: Self, value: T) ?*Bucket {
@@ -123,10 +157,17 @@ pub fn HashSet(comptime T: type) type {
 
             return null;
         }
+
+        fn alloc(allocator: Allocator, len: usize) Allocator.Error![]Bucket {
+            const buckets = try allocator.alloc(Bucket, len);
+            @memset(buckets, Bucket.empty);
+            return buckets;
+        }
     };
 }
 
 const TestSet = HashSet(usize);
+
 fn testSet(capacity: usize) Allocator.Error!TestSet {
     return try TestSet.initCapacity(
         testing.allocator,
@@ -283,6 +324,35 @@ test "add(value) does not insert when value is present at probed bucket across d
         set.buckets
     );
     try testing.expectEqual(2, set.len);
+}
+
+test "add(value) rehashes when the load factor is crossed" {
+    var set = try testSet(5);
+    defer set.deinit();
+
+    _ = try set.add(2); // 2 => 2
+    _ = try set.add(4); // 4 => 4
+    _ = try set.add(6); // 1 => 6
+
+    _ = try set.add(8); // 8 => 8
+
+    try testing.expectEqualSlices(
+        TestSet.Bucket,
+        &[_]TestSet.Bucket {
+            TestSet.Bucket.empty,
+            TestSet.Bucket.empty,
+            TestSet.Bucket { .full = .{ .value = 2, .hash_value = 2 } },
+            TestSet.Bucket.empty,
+            TestSet.Bucket { .full = .{ .value = 4, .hash_value = 4 } },
+            TestSet.Bucket.empty,
+            TestSet.Bucket { .full = .{ .value = 6, .hash_value = 6 } },
+            TestSet.Bucket.empty,
+            TestSet.Bucket { .full = .{ .value = 8, .hash_value = 8 } },
+            TestSet.Bucket.empty,
+        },
+        set.buckets
+    );
+    try testing.expectEqual(4, set.len);
 }
 
 test "remove(value) marks the bucket as deleted when value present at head bucket" {
