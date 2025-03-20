@@ -11,11 +11,12 @@ pub fn HashSet(comptime T: type) type {
         const DefaultCapacity = 4; // Picked at random
 
         const Self = @This();
+        const Iterator = @import("hash-set.iterator.zig").HashSetIterator(T);
 
-        const Context = struct { hash: *const Hash(T), equal: *const Equal(T) };
+        pub const Context = struct { hash: *const Hash(T), equal: *const Equal(T) };
 
-        const FullBucket = struct { value: T, hash_value: usize, };
-        const Bucket = union(enum) {
+        pub const FullBucket = struct { value: T, hash_value: usize, };
+        pub const Bucket = union(enum) {
             empty,
             deleted,
             full: FullBucket,
@@ -90,6 +91,10 @@ pub fn HashSet(comptime T: type) type {
             return self.findBucket(value) != null;
         }
 
+        pub fn iter(self: Self) Iterator {
+            return Iterator.init(self);
+        }
+
         fn findBucket(self: Self, value: T) ?*Bucket {
             const hash_value = self.ctx.hash(value);
             const head_i = hash_value % self.buckets.len;
@@ -136,6 +141,7 @@ test "init() intializes with empty buckets" {
         &[_]TestSet.Bucket { TestSet.Bucket.empty } ** 3,
         set.buckets
     );
+    try testing.expectEqual(0, set.len);
 }
 
 test "add(value) inserts into bucket when value computes to empty bucket" {

@@ -20,6 +20,7 @@ test {
     _ = @import("stack.zig");
 
     _ = @import("hash-set.zig");
+    _ = @import("hash-set.iterator.zig");
 
     _ = @import("tests/list-adt.zig");
 }
