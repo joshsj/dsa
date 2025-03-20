@@ -86,7 +86,7 @@ pub fn HashSet(comptime T: type) type {
                 return null;
             }
 
-            const bucket_p = self.findBucket(value) orelse return null;
+            const bucket_p = self.bucketContaining(value) orelse return null;
 
             defer bucket_p.* = .deleted;
             defer self.len -= 1;
@@ -94,14 +94,14 @@ pub fn HashSet(comptime T: type) type {
         }
 
         pub fn has(self: Self, value: T) bool {
-            return self.findBucket(value) != null;
+            return self.bucketContaining(value) != null;
         }
 
         pub fn iter(self: Self) Iterator {
             return Iterator.init(self);
         }
 
-        fn findBucket(self: Self, value: T) ?*Bucket {
+        fn bucketContaining(self: Self, value: T) ?*Bucket {
             const hash_value = self.ctx.hash(value);
             const head_i = hash_value % self.buckets.len;
             
