@@ -332,7 +332,7 @@ test "add(value) rehashes when the load factor is crossed" {
 
     _ = try set.add(2); // 2 => 2
     _ = try set.add(4); // 4 => 4
-    _ = try set.add(6); // 1 => 6
+    _ = try set.add(7); // 3 => 7
 
     _ = try set.add(8); // 8 => 8
 
@@ -345,8 +345,8 @@ test "add(value) rehashes when the load factor is crossed" {
             TestSet.Bucket.empty,
             TestSet.Bucket { .full = .{ .value = 4, .hash_value = 4 } },
             TestSet.Bucket.empty,
-            TestSet.Bucket { .full = .{ .value = 6, .hash_value = 6 } },
             TestSet.Bucket.empty,
+            TestSet.Bucket { .full = .{ .value = 7, .hash_value = 7 } },
             TestSet.Bucket { .full = .{ .value = 8, .hash_value = 8 } },
             TestSet.Bucket.empty,
         },
