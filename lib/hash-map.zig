@@ -168,6 +168,7 @@ pub fn HashMap(comptime TKey: type, comptime TValue: type) type {
         }
 
         fn loadFactor(self: Self, plus: usize) f64 {
+            // TODO: change to (len + plus) > self.buckets.len * LoadFactor
             // TODO: not safe!
             const len: f64 = @floatFromInt(self.len + plus);
             const cap: f64 = @floatFromInt(self.buckets.len);
