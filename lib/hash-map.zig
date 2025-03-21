@@ -6,13 +6,13 @@ const common = @import("common.zig");
 const Equal = common.Equal;
 const Hash = common.Hash;
 
-pub fn HashSet(comptime T: type) type {
+pub fn HashMap(comptime T: type) type {
     return struct {
         const DefaultCapacity = 4; // Picked at random
         const LoadFactor: f64 = 0.75; // Stolen from the internet
 
         const Self = @This();
-        const Iterator = @import("hash-set.iterator.zig").HashSetIterator(T);
+        const Iterator = @import("hash-map.iterator.zig").HashMapIterator(T);
 
         pub const Context = struct { hash: *const Hash(T), equal: *const Equal(T) };
 
@@ -166,12 +166,12 @@ pub fn HashSet(comptime T: type) type {
     };
 }
 
-const TestSet = HashSet(usize);
+const TestMap = HashMap(usize);
 
-fn testSet(capacity: usize) Allocator.Error!TestSet {
-    return try TestSet.initCapacity(
+fn testMap(capacity: usize) Allocator.Error!TestMap {
+    return try TestMap.initCapacity(
         testing.allocator,
-        TestSet.Context {
+        TestMap.Context {
             .equal = common.defaultEqual(usize),
             .hash = common.identity(usize),
         },
@@ -180,271 +180,271 @@ fn testSet(capacity: usize) Allocator.Error!TestSet {
 }
 
 test "init() intializes with empty buckets" {
-    var set = try testSet(3);
-    defer set.deinit();
+    var map = try testMap(3);
+    defer map.deinit();
 
     try testing.expectEqualSlices(
-        TestSet.Bucket, 
-        &[_]TestSet.Bucket { TestSet.Bucket.empty } ** 3,
-        set.buckets
+        TestMap.Bucket, 
+        &[_]TestMap.Bucket { TestMap.Bucket.empty } ** 3,
+        map.buckets
     );
-    try testing.expectEqual(0, set.len);
+    try testing.expectEqual(0, map.len);
 }
 
 test "add(value) inserts into bucket when value computes to empty bucket" {
-    var set = try testSet(3);
-    defer set.deinit();
+    var map = try testMap(3);
+    defer map.deinit();
 
-    const ret = try set.add(1);
+    const ret = try map.add(1);
 
     try testing.expect(ret);
     try testing.expectEqualSlices(
-        TestSet.Bucket, 
-        &[_]TestSet.Bucket { 
-            TestSet.Bucket.empty,
-            TestSet.Bucket { .full = .{ .value = 1, .hash_value = 1 } },
-            TestSet.Bucket.empty,
+        TestMap.Bucket, 
+        &[_]TestMap.Bucket { 
+            TestMap.Bucket.empty,
+            TestMap.Bucket { .full = .{ .value = 1, .hash_value = 1 } },
+            TestMap.Bucket.empty,
         },
-        set.buckets
+        map.buckets
     );
-    try testing.expectEqual(1, set.len);
+    try testing.expectEqual(1, map.len);
 }
 
 test "add(value) inserts into bucket when value computes to probed bucket" {
-    var set = try testSet(3);
-    defer set.deinit();
+    var map = try testMap(3);
+    defer map.deinit();
 
-    _ = try set.add(1);
+    _ = try map.add(1);
 
-    const ret = try set.add(4);
+    const ret = try map.add(4);
 
     try testing.expect(ret);
     try testing.expectEqualSlices(
-        TestSet.Bucket, 
-        &[_]TestSet.Bucket { 
-            TestSet.Bucket.empty,
-            TestSet.Bucket { .full = .{ .value = 1, .hash_value = 1 } },
-            TestSet.Bucket { .full = .{ .value = 4, .hash_value = 4 } },
+        TestMap.Bucket, 
+        &[_]TestMap.Bucket { 
+            TestMap.Bucket.empty,
+            TestMap.Bucket { .full = .{ .value = 1, .hash_value = 1 } },
+            TestMap.Bucket { .full = .{ .value = 4, .hash_value = 4 } },
         },
-        set.buckets
+        map.buckets
     );
-    try testing.expectEqual(2, set.len);
+    try testing.expectEqual(2, map.len);
 }
 
 test "add(value) inserts into deleted bucket when value computes to probed bucket across deleted buckets" {
-    var set = try testSet(5);
-    defer set.deinit();
+    var map = try testMap(5);
+    defer map.deinit();
 
-    _ = try set.add(1);
-    _ = try set.add(2);
-    _ = try set.add(3);
-    _ = set.remove(2);
+    _ = try map.add(1);
+    _ = try map.add(2);
+    _ = try map.add(3);
+    _ = map.remove(2);
 
-    const ret = try set.add(7);
+    const ret = try map.add(7);
 
     try testing.expect(ret);
     try testing.expectEqualSlices(
-        TestSet.Bucket, 
-        &[_]TestSet.Bucket { 
-            TestSet.Bucket.empty,
-            TestSet.Bucket { .full = .{ .value = 1, .hash_value = 1 } },
-            TestSet.Bucket { .full = .{ .value = 7, .hash_value = 7 } },
-            TestSet.Bucket { .full = .{ .value = 3, .hash_value = 3 } },
-            TestSet.Bucket.empty,
+        TestMap.Bucket, 
+        &[_]TestMap.Bucket { 
+            TestMap.Bucket.empty,
+            TestMap.Bucket { .full = .{ .value = 1, .hash_value = 1 } },
+            TestMap.Bucket { .full = .{ .value = 7, .hash_value = 7 } },
+            TestMap.Bucket { .full = .{ .value = 3, .hash_value = 3 } },
+            TestMap.Bucket.empty,
         },
-        set.buckets
+        map.buckets
     );
-    try testing.expectEqual(3, set.len);
+    try testing.expectEqual(3, map.len);
 }
 
 test "add(value) does not insert when value is present at head bucket" {
-    var set = try testSet(3);
-    defer set.deinit();
+    var map = try testMap(3);
+    defer map.deinit();
 
-    _ = try set.add(1);
-    const ret = try set.add(1);
+    _ = try map.add(1);
+    const ret = try map.add(1);
 
     try testing.expect(!ret);
     try testing.expectEqualSlices(
-        TestSet.Bucket, 
-        &[_]TestSet.Bucket { 
-            TestSet.Bucket.empty,
-            TestSet.Bucket { .full = .{ .value = 1, .hash_value = 1 } },
-            TestSet.Bucket.empty,
+        TestMap.Bucket, 
+        &[_]TestMap.Bucket { 
+            TestMap.Bucket.empty,
+            TestMap.Bucket { .full = .{ .value = 1, .hash_value = 1 } },
+            TestMap.Bucket.empty,
         },
-        set.buckets
+        map.buckets
     );
-    try testing.expectEqual(1, set.len);
+    try testing.expectEqual(1, map.len);
 }
 
 test "add(value) does not insert when value is present at probed bucket" {
-    var set = try testSet(5);
-    defer set.deinit();
+    var map = try testMap(5);
+    defer map.deinit();
 
-    _ = try set.add(6);
-    _ = try set.add(1);
-    const ret = try set.add(1);
+    _ = try map.add(6);
+    _ = try map.add(1);
+    const ret = try map.add(1);
 
     try testing.expect(!ret);
     try testing.expectEqualSlices(
-        TestSet.Bucket, 
-        &[_]TestSet.Bucket { 
-            TestSet.Bucket.empty,
-            TestSet.Bucket { .full = .{ .value = 6, .hash_value = 6 } },
-            TestSet.Bucket { .full = .{ .value = 1, .hash_value = 1 } },
-            TestSet.Bucket.empty,
-            TestSet.Bucket.empty,
+        TestMap.Bucket, 
+        &[_]TestMap.Bucket { 
+            TestMap.Bucket.empty,
+            TestMap.Bucket { .full = .{ .value = 6, .hash_value = 6 } },
+            TestMap.Bucket { .full = .{ .value = 1, .hash_value = 1 } },
+            TestMap.Bucket.empty,
+            TestMap.Bucket.empty,
         },
-        set.buckets
+        map.buckets
     );
-    try testing.expectEqual(2, set.len);
+    try testing.expectEqual(2, map.len);
 }
 
 test "add(value) does not insert when value is present at probed bucket across deleted buckets" {
-    var set = try testSet(5);
-    defer set.deinit();
+    var map = try testMap(5);
+    defer map.deinit();
 
-    _ = try set.add(6);
-    _ = try set.add(1);
-    _ = try set.add(3);
-    _ = set.remove(1);
+    _ = try map.add(6);
+    _ = try map.add(1);
+    _ = try map.add(3);
+    _ = map.remove(1);
 
-    const ret = try set.add(3);
+    const ret = try map.add(3);
 
     try testing.expect(!ret);
     try testing.expectEqualSlices(
-        TestSet.Bucket, 
-        &[_]TestSet.Bucket { 
-            TestSet.Bucket.empty,
-            TestSet.Bucket { .full = .{ .value = 6, .hash_value = 6 } },
-            TestSet.Bucket.deleted,
-            TestSet.Bucket { .full = .{ .value = 3, .hash_value = 3 } },
-            TestSet.Bucket.empty,
+        TestMap.Bucket, 
+        &[_]TestMap.Bucket { 
+            TestMap.Bucket.empty,
+            TestMap.Bucket { .full = .{ .value = 6, .hash_value = 6 } },
+            TestMap.Bucket.deleted,
+            TestMap.Bucket { .full = .{ .value = 3, .hash_value = 3 } },
+            TestMap.Bucket.empty,
         },
-        set.buckets
+        map.buckets
     );
-    try testing.expectEqual(2, set.len);
+    try testing.expectEqual(2, map.len);
 }
 
 test "add(value) rehashes when the load factor is crossed" {
-    var set = try testSet(5);
-    defer set.deinit();
+    var map = try testMap(5);
+    defer map.deinit();
 
-    _ = try set.add(2); // 2 => 2
-    _ = try set.add(4); // 4 => 4
-    _ = try set.add(7); // 3 => 7
+    _ = try map.add(2); // 2 => 2
+    _ = try map.add(4); // 4 => 4
+    _ = try map.add(7); // 3 => 7
 
-    _ = try set.add(8); // 8 => 8
+    _ = try map.add(8); // 8 => 8
 
     try testing.expectEqualSlices(
-        TestSet.Bucket,
-        &[_]TestSet.Bucket {
-            TestSet.Bucket.empty,
-            TestSet.Bucket.empty,
-            TestSet.Bucket { .full = .{ .value = 2, .hash_value = 2 } },
-            TestSet.Bucket.empty,
-            TestSet.Bucket { .full = .{ .value = 4, .hash_value = 4 } },
-            TestSet.Bucket.empty,
-            TestSet.Bucket.empty,
-            TestSet.Bucket { .full = .{ .value = 7, .hash_value = 7 } },
-            TestSet.Bucket { .full = .{ .value = 8, .hash_value = 8 } },
-            TestSet.Bucket.empty,
+        TestMap.Bucket,
+        &[_]TestMap.Bucket {
+            TestMap.Bucket.empty,
+            TestMap.Bucket.empty,
+            TestMap.Bucket { .full = .{ .value = 2, .hash_value = 2 } },
+            TestMap.Bucket.empty,
+            TestMap.Bucket { .full = .{ .value = 4, .hash_value = 4 } },
+            TestMap.Bucket.empty,
+            TestMap.Bucket.empty,
+            TestMap.Bucket { .full = .{ .value = 7, .hash_value = 7 } },
+            TestMap.Bucket { .full = .{ .value = 8, .hash_value = 8 } },
+            TestMap.Bucket.empty,
         },
-        set.buckets
+        map.buckets
     );
-    try testing.expectEqual(4, set.len);
+    try testing.expectEqual(4, map.len);
 }
 
 test "remove(value) marks the bucket as deleted when value present at head bucket" {
-    var set = try testSet(5);
-    defer set.deinit();
+    var map = try testMap(5);
+    defer map.deinit();
 
-    _ = try set.add(1);
-    const ret = set.remove(1);
+    _ = try map.add(1);
+    const ret = map.remove(1);
 
     try testing.expectEqual(1, ret);
     try testing.expectEqualSlices(
-        TestSet.Bucket,
-        &[_]TestSet.Bucket { 
-            TestSet.Bucket.empty,
-            TestSet.Bucket.deleted,
-            TestSet.Bucket.empty,
-            TestSet.Bucket.empty,
-            TestSet.Bucket.empty,
+        TestMap.Bucket,
+        &[_]TestMap.Bucket { 
+            TestMap.Bucket.empty,
+            TestMap.Bucket.deleted,
+            TestMap.Bucket.empty,
+            TestMap.Bucket.empty,
+            TestMap.Bucket.empty,
         },
-        set.buckets
+        map.buckets
     );
-    try testing.expectEqual(0, set.len);
+    try testing.expectEqual(0, map.len);
 }
 
 test "remove(value) marks the bucket as deleted when value present at probed bucket" {
-    var set = try testSet(5);
-    defer set.deinit();
+    var map = try testMap(5);
+    defer map.deinit();
 
-    _ = try set.add(11);
-    _ = try set.add(6);
-    _ = try set.add(1);
+    _ = try map.add(11);
+    _ = try map.add(6);
+    _ = try map.add(1);
 
-    const ret = set.remove(1);
+    const ret = map.remove(1);
 
     try testing.expectEqual(1, ret);
     try testing.expectEqualSlices(
-        TestSet.Bucket,
-        &[_]TestSet.Bucket { 
-            TestSet.Bucket.empty,
-            TestSet.Bucket { .full = .{ .value = 11, .hash_value = 11 } },
-            TestSet.Bucket { .full = .{ .value = 6, .hash_value = 6 } },
-            TestSet.Bucket.deleted,
-            TestSet.Bucket.empty,
+        TestMap.Bucket,
+        &[_]TestMap.Bucket { 
+            TestMap.Bucket.empty,
+            TestMap.Bucket { .full = .{ .value = 11, .hash_value = 11 } },
+            TestMap.Bucket { .full = .{ .value = 6, .hash_value = 6 } },
+            TestMap.Bucket.deleted,
+            TestMap.Bucket.empty,
         },
-        set.buckets
+        map.buckets
     );
-    try testing.expectEqual(2, set.len);
+    try testing.expectEqual(2, map.len);
 }
 
 test "remove(value) returns null when value not present" {
-    var set = try testSet(5);
-    defer set.deinit();
+    var map = try testMap(5);
+    defer map.deinit();
 
-    _ = try set.add(1);
-    _ = try set.add(2);
-    _ = try set.add(3);
+    _ = try map.add(1);
+    _ = try map.add(2);
+    _ = try map.add(3);
 
-    const ret = set.remove(4);
+    const ret = map.remove(4);
 
     try testing.expectEqual(null, ret);
     try testing.expectEqualSlices(
-        TestSet.Bucket,
-        &[_]TestSet.Bucket { 
-            TestSet.Bucket.empty,
-            TestSet.Bucket { .full = .{ .value = 1, .hash_value = 1 } },
-            TestSet.Bucket { .full = .{ .value = 2, .hash_value = 2 } },
-            TestSet.Bucket { .full = .{ .value = 3, .hash_value = 3 } },
-            TestSet.Bucket.empty,
+        TestMap.Bucket,
+        &[_]TestMap.Bucket { 
+            TestMap.Bucket.empty,
+            TestMap.Bucket { .full = .{ .value = 1, .hash_value = 1 } },
+            TestMap.Bucket { .full = .{ .value = 2, .hash_value = 2 } },
+            TestMap.Bucket { .full = .{ .value = 3, .hash_value = 3 } },
+            TestMap.Bucket.empty,
         },
-        set.buckets
+        map.buckets
     );
-    try testing.expectEqual(3, set.len);
+    try testing.expectEqual(3, map.len);
 }
 
 test "has(value) returns true when value is present" {
-    var set = try testSet(5);
-    defer set.deinit();
+    var map = try testMap(5);
+    defer map.deinit();
 
-    _ = try set.add(1);
-    _ = try set.add(2);
-    _ = try set.add(3);
+    _ = try map.add(1);
+    _ = try map.add(2);
+    _ = try map.add(3);
 
-    try testing.expect(set.has(2));
+    try testing.expect(map.has(2));
 }
 
 test "has(value) returns false when value is not present" {
-    var set = try testSet(5);
-    defer set.deinit();
+    var map = try testMap(5);
+    defer map.deinit();
 
-    _ = try set.add(1);
-    _ = try set.add(2);
-    _ = try set.add(3);
+    _ = try map.add(1);
+    _ = try map.add(2);
+    _ = try map.add(3);
 
-    try testing.expect(!set.has(5));
+    try testing.expect(!map.has(5));
 }

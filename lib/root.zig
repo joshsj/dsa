@@ -21,6 +21,8 @@ test {
 
     _ = @import("hash-set.zig");
     _ = @import("hash-set.iterator.zig");
+    _ = @import("hash-map.zig");
+    _ = @import("hash-map.iterator.zig");
 
     _ = @import("tests/list-adt.zig");
 }
