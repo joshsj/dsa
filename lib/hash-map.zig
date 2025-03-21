@@ -52,6 +52,7 @@ pub fn HashMap(comptime TKey: type, comptime TValue: type) type {
         ///
         /// O(1)
         pub fn add(self: *Self, key: TKey, value: TValue) Allocator.Error!bool {
+            // TODO: don't rehash if nextBucket returns full
             if (self.loadFactor(1) > LoadFactor) {
                 try self.rehash();
             }
@@ -62,7 +63,6 @@ pub fn HashMap(comptime TKey: type, comptime TValue: type) type {
 
             var first_deleted_p: ?*Bucket = null;
 
-            // TODO: optimize best-case
             while (probe_i < self.buckets.len) : (probe_i += 1) {
                 const bucket_p = &self.buckets[(head_i + probe_i) % self.buckets.len];
 
@@ -85,20 +85,33 @@ pub fn HashMap(comptime TKey: type, comptime TValue: type) type {
             unreachable;
         }
 
-        pub fn remove(self: *Self, key: TKey) ?TValue {
-            if (self.len == 0) {
-                return null;
+        // TODO: pub fn set() { }
+
+        pub fn update(self: Self, key: TKey, value: TValue) error{ EntryNotFound }!void {
+            const bucket_p = self.nextBucket(key) orelse return error.EntryNotFound;
+
+            switch (bucket_p.*) {
+                .full => bucket_p.full.value = value,
+                else => return error.EntryNotFound,
             }
+        }
 
-            const bucket_p = self.bucketContaining(key) orelse return null;
+        pub fn remove(self: *Self, key: TKey) ?TValue {
+            // TODO: when to use EntryNotFound vs null?
+            const bucket_p = self.nextBucket(key) orelse return null;
 
-            defer bucket_p.* = .deleted;
-            defer self.len -= 1;
-            return bucket_p.full.value;
+            return switch (bucket_p.*) {
+                .full => |full| {
+                    bucket_p.* = .deleted;
+                    self.len -= 1;
+                    return full.value;
+                },
+                else => null,
+            };
         }
 
         pub fn has(self: Self, value: TKey) bool {
-            return self.bucketContaining(value) != null;
+            return if (self.nextBucket(value)) |b| b.* == .full else false;
         }
 
         pub fn iter(self: Self) Iterator {
@@ -128,26 +141,29 @@ pub fn HashMap(comptime TKey: type, comptime TValue: type) type {
             self.buckets = buckets;
         }
 
-        fn bucketContaining(self: Self, key: TKey) ?*Bucket {
+        /// Returns the full bucket containing the key
+        /// or the next deleted/empty bucket
+        fn nextBucket(self: Self, key: TKey) ?*Bucket {
             const hash_value = self.ctx.hash(key);
             const head_i = hash_value % self.buckets.len;
-            
             var probe_i: usize = 0;
+
+            var first_deleted_p: ?*Bucket = null;
 
             while (probe_i < self.buckets.len) : (probe_i += 1) {
                 const bucket_p = &self.buckets[(head_i + probe_i) % self.buckets.len];
 
                 switch (bucket_p.*) {
-                    .empty => return null,
-                    .deleted => {},
-                    .full => |full| {
-                        if (full.hash_value == hash_value and self.ctx.equal(full.key, key)) {
-                            return bucket_p;
-                        }
-                    }
+                    .empty => return first_deleted_p orelse bucket_p,
+
+                    .deleted => if (first_deleted_p == null) { first_deleted_p = bucket_p; },
+
+                    .full => |full| if (full.hash_value == hash_value and self.ctx.equal(full.key, key)) return bucket_p,
                 }
             }
 
+            // Only happens when buckets is full,
+            // so should never happen with load factor management
             return null;
         }
 
@@ -168,7 +184,7 @@ pub fn HashMap(comptime TKey: type, comptime TValue: type) type {
 }
 
 const Str = [:0]const u8;
-const TestMap = HashMap(usize, Str);
+const TestMap = HashMap(usize, Str,);
 
 fn testMap(capacity: usize) Allocator.Error!TestMap {
     return try TestMap.initCapacity(
@@ -355,6 +371,38 @@ test "add(value) rehashes when the load factor is crossed" {
         map.buckets
     );
     try testing.expectEqual(4, map.len);
+}
+
+test "update(value) updates the bucket value when value present" {
+    var map = try testMap(3);
+    defer map.deinit();
+
+    _ = try map.add(1, "old");
+
+    try map.update(1, "new");
+
+    try testing.expectEqualSlices(
+        TestMap.Bucket,
+        &[_]TestMap.Bucket { 
+            TestMap.Bucket.empty,
+            TestMap.Bucket { .full = .{ .key = 1, .value = "new", .hash_value = 1 } },
+            TestMap.Bucket.empty,
+        },
+        map.buckets
+    );
+    try testing.expectEqual(1, map.len);
+}
+
+test "update(value) return an error when value not present" {
+    var map = try testMap(3);
+    defer map.deinit();
+
+    const err = map.update(1, "new");
+
+    try testing.expectError(
+        error.EntryNotFound,
+        err,
+    );
 }
 
 test "remove(value) marks the bucket as deleted when value present at head bucket" {
