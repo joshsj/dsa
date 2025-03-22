@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<title>Hash Maps&#x2F;Sets :: Data Structures &amp; Algorithms</title>
+
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+	<!-- TODO: sort out base urls? -->
+	<link rel="stylesheet" href="../styles.css" type="text/css"> 
+
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.css"
+		integrity="sha384-zh0CIslj+VczCZtlzBcjt5ppRcsAmDnRem7ESsYwWwg3m/OaJ2l4x7YBZl9Kxxib" crossorigin="anonymous">
+
+	<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.js"
+		integrity="sha384-Rma6DA2IPUwhNxmrB/7S3Tno0YY7sFu9WSYMCuulLhIqYSGZ2gKCJWIqhBWqMQfh" crossorigin="anonymous">
+		</script>
+</head>
+
+<body>
+	<nav>
+		<p><a class="mask" href="..">Home</a></p>
+	</nav>
+
+	<h1>Hash Maps &amp; Sets</h1>
+<dl><dt title="">Hash collision</dt><dd>A value that is produced by the hash function for different inputs.</dd><dt title="">Hash function</dt><dd>A deterministic, consistent function that maps data of an arbitrary length to a fixed length.</dd><dt title="">Load factor</dt><dd>The ratio of elements to capacity in a data structure.</dd></dl>
+
+
+<p>Hash-based data structures are designed for
+<a href="https://www.youtube.com/watch?v=imO-mrsdLcs&t=12s">lightning-fast</a> data access
+&mdash; <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="script">O</mi><mo stretchy="false">(</mo><mn>1</mn><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\mathcal{O}(1)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathcal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord">1</span><span class="mclose">)</span></span></span></span> to be precise.</p>
+<p>A hash map (or hash table) implements a Map and a hash set implements a Set.</p>
+<h2>Representation</h2>
+<p>Hash maps/sets are backed by an array list.</p>
+<p>Indexes are calculated using a <dfn title="A deterministic, consistent function that maps data of an arbitrary length to a fixed length.">hash function</dfn> on the key to produce
+a unique numerical value (bar collisions)</p>
+<p>This is passed to a subsequent reducer function which produces an index within
+the capacity of the backing structure, modulo being a simple option.</p>
+<p>This approach gives a time complexity of <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="script">O</mi><mo stretchy="false">(</mo><mn>1</mn><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\mathcal{O}(1)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathcal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord">1</span><span class="mclose">)</span></span></span></span>.</p>
+<aside>
+
+
+
+<p>When the structure is required to resize its array list and rehash the entries
+the worst-case scenario is met. This operation is <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="script">O</mi><mo stretchy="false">(</mo><mi>log</mi><mo>⁡</mo><mi>n</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\mathcal{O}(\log{n})</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathcal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mop">lo<span style="margin-right:0.01389em;">g</span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal">n</span></span><span class="mclose">)</span></span></span></span> or
+<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="script">O</mi><mo stretchy="false">(</mo><mi>n</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\mathcal{O}(n)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathcal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mclose">)</span></span></span></span>, depending on the implementation.</p>
+<p>However, the average-case of <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="script">O</mi><mo stretchy="false">(</mo><mn>1</mn><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\mathcal{O}(1)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathcal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord">1</span><span class="mclose">)</span></span></span></span> is accepted because a good
+hash function and good handling of load avoids the worst-case scenario.</p>
+</aside>
+
+<h2>Load Factor</h2>
+<p>Load factor is defined as:</p>
+<p><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>α</mi><mo>=</mo><mfrac><mi>n</mi><mi>m</mi></mfrac></mrow><annotation encoding="application/x-tex">\alpha = \frac{n}{m}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal" style="margin-right:0.0037em;">α</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1.7936em;vertical-align:-0.686em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.1076em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal">m</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal">n</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.686em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span></span>
+...where <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi></mrow><annotation encoding="application/x-tex">n</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">n</span></span></span></span> is the number of cells occupied and <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>m</mi></mrow><annotation encoding="application/x-tex">m</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">m</span></span></span></span>
+is the number of available cells.</p>
+<h2>Handling Collisions</h2>
+<p>Even a perfectly-distributed hash function and reducer will encounter clashing
+indexes.</p>
+<h3>Open Addressing</h3>
+<p>Open addressing uses an algorithm to determine the index for a given key, not
+just a hash and reducer function.</p>
+<p>This involves &quot;probing&quot; the backing array for an available index if the
+immediate cell is populated using one of many strategies:</p>
+<ul>
+<li>Linear probing walks the array by a fixed offset, usually 1, until an unused
+cell is found.</li>
+<li>Double hashing uses a second hash function to calculate the offset.</li>
+</ul>
+<p>Open addressing has significant impact on the appropriate load factor of a 
+hash map/set, as all elements are stored in the backing array directly.
+Implementations using open addressing typically maintain a load factor of 0.6
+to 0.75.</p>
+<h3>Separate Chaining</h3>
+<p>Separate chaining stores an additional data structure in each bucket instead of
+the key/value, typically a linked list.</p>
+<p>Compared to open addressing, only the hash function determines the index for a
+key &mdash; no algorithm is needed. To find an entry, the linked list stored at the
+index is walked instead.</p>
+<p>Load factor is not a critical issue for separate chaining because the linked
+lists can continue to grow. For best performance, it should be between 1 and 3
+to balance the extra computation of resizing and rehashing against walking the
+chained entries.</p>
+<aside>
+
+
+
+<p>A load factor greater than 1 is possible because mutliple values are stored at
+a single index.</p>
+</aside>
+
+
+</body>
+
