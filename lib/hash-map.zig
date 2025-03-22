@@ -3,8 +3,6 @@ const testing = @import("testing.zig");
 const Allocator = std.mem.Allocator;
 
 const common = @import("common.zig");
-const Equal = common.Equal;
-const Hash = common.Hash;
 
 pub fn HashMap(comptime TKey: type, comptime TValue: type) type {
     return struct {
@@ -14,7 +12,10 @@ pub fn HashMap(comptime TKey: type, comptime TValue: type) type {
         const Self = @This();
         const Iterator = @import("hash-map.iterator.zig").HashMapIterator(TKey, TValue);
 
-        pub const Context = struct { hash: *const Hash(TKey), equal: *const Equal(TKey) };
+        pub const Context = struct { 
+            hash: *const common.Hash(TKey),
+            equal: *const common.Equal(TKey),
+        };
 
         pub const Pair = struct { key: TKey, value: TValue };
         pub const FullBucket = struct { key: TKey, value: TValue, hash_value: usize, };
@@ -48,8 +49,6 @@ pub fn HashMap(comptime TKey: type, comptime TValue: type) type {
             self.len = 0;
         }
 
-        /// Returns true if the value was added
-        ///
         /// O(1)
         pub fn add(self: *Self, key: TKey, value: TValue) (Allocator.Error || error{ KeyInUse })!void {
             const bucket_p, const hash_value =
@@ -73,13 +72,17 @@ pub fn HashMap(comptime TKey: type, comptime TValue: type) type {
             self.len += 1;
         }
 
-        pub fn set(self: *Self, key: TKey, value: TValue) Allocator.Error!void {
-            return
-                self.update(key, value) catch
-                self.add(key, value) catch |err| switch (err) {
-                    error.KeyInUse => unreachable,
-                    else => |narrowed| narrowed
-            };
+        /// Returns true if key was added, false if updated
+        ///
+        /// O(1)
+        pub fn set(self: *Self, key: TKey, value: TValue) Allocator.Error!bool {
+            // TODO: calls nextBucket in update and add but this is easier :shrug:
+            return if (self.update(key, value)) false
+                else |_| if (self.add(key, value)) true
+                    else |err| switch (err) {
+                        error.KeyInUse => unreachable,
+                        else => |narrowed| narrowed
+                    };
         }
 
         /// O(1)
@@ -444,8 +447,9 @@ test "set(value) updates the bucket value when value present" {
 
     try map.add(1, "old");
 
-    try map.set(1, "new");
+    const ret = try map.set(1, "new");
 
+    try testing.expect(!ret);
     try testing.expectEqualSlices(
         TestMap.Bucket,
         &[_]TestMap.Bucket { 
@@ -463,16 +467,16 @@ test "set(value) inserts into bucket when value is not present" {
     defer map.deinit();
 
     try map.add(6, "six");
-    try map.add(1, "one");
 
-    try map.set(1, "yup");
+    const ret = try map.set(1, "juan");
 
+    try testing.expect(ret);
     try testing.expectEqualSlices(
         TestMap.Bucket, 
         &[_]TestMap.Bucket { 
             TestMap.Bucket.empty,
             TestMap.Bucket { .full = .{ .key = 6, .value = "six", .hash_value = 6 } },
-            TestMap.Bucket { .full = .{ .key = 1, .value = "yup", .hash_value = 1 } },
+            TestMap.Bucket { .full = .{ .key = 1, .value = "juan", .hash_value = 1 } },
             TestMap.Bucket.empty,
             TestMap.Bucket.empty,
         },

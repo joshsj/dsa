@@ -13,3 +13,10 @@ pub fn identity(comptime T: type) fn(T) T {
     }.f;
 }
 
+pub fn coerced(comptime TValue: type, comptime TCoerced: type) fn(TValue) TCoerced {
+    return struct {
+        fn f(value: TValue) TCoerced {
+            return value;
+        }
+    }.f;
+}
