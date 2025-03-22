@@ -94,7 +94,6 @@ pub fn HashMap(comptime TKey: type, comptime TValue: type) type {
 
         /// O(1)
         pub fn remove(self: *Self, key: TKey) ?TValue {
-            // TODO: when to use KeyNotFound vs null?
             const bucket_p, _ = self.nextBucket(key) orelse return null;
 
             return switch (bucket_p.*) {
