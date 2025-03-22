@@ -116,6 +116,16 @@ pub fn HashMap(comptime TKey: type, comptime TValue: type) type {
             return bucket_p.* == .full;
         }
 
+        /// O(1)
+        pub fn get(self: Self, key: TKey) ?TValue {
+            const bucket_p, _ = self.nextBucket(key) orelse return null;
+
+            return switch (bucket_p.*) {
+                .full => |full| full.value,
+                else => null,
+            };
+        }
+
         pub fn iter(self: Self) Iterator {
             return Iterator.init(self);
         }
@@ -579,3 +589,26 @@ test "has(value) returns false when value is not present" {
 
     try testing.expect(!map.has(5));
 }
+
+test "get(value) returns true when value is present" {
+    var map = try testMap(5);
+    defer map.deinit();
+
+    try map.add(1, "1");
+    try map.add(2, "2");
+    try map.add(3, "3");
+
+    try testing.expectEqual("2", map.get(2));
+}
+
+test "get(value) returns false when value is not present" {
+    var map = try testMap(5);
+    defer map.deinit();
+
+    try map.add(1, "1");
+    try map.add(2, "2");
+    try map.add(3, "3");
+
+    try testing.expectEqual(null, map.get(5));
+}
+
