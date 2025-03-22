@@ -73,8 +73,16 @@ pub fn HashMap(comptime TKey: type, comptime TValue: type) type {
             self.len += 1;
         }
 
-        // TODO: pub fn set() { }
+        pub fn set(self: *Self, key: TKey, value: TValue) Allocator.Error!void {
+            return
+                self.update(key, value) catch
+                self.add(key, value) catch |err| switch (err) {
+                    error.KeyInUse => unreachable,
+                    else => |narrowed| narrowed
+            };
+        }
 
+        /// O(1)
         pub fn update(self: Self, key: TKey, value: TValue) error{ KeyNotFound }!void {
             const bucket_p, _ = self.nextBucket(key) orelse return error.KeyNotFound;
 
@@ -84,6 +92,7 @@ pub fn HashMap(comptime TKey: type, comptime TValue: type) type {
             }
         }
 
+        /// O(1)
         pub fn remove(self: *Self, key: TKey) ?TValue {
             // TODO: when to use KeyNotFound vs null?
             const bucket_p, _ = self.nextBucket(key) orelse return null;
@@ -98,6 +107,7 @@ pub fn HashMap(comptime TKey: type, comptime TValue: type) type {
             };
         }
 
+        /// O(1)
         pub fn has(self: Self, key: TKey) bool {
             const bucket_p, _ = self.nextBucket(key) orelse return false;
 
@@ -111,7 +121,8 @@ pub fn HashMap(comptime TKey: type, comptime TValue: type) type {
         fn rehashIfOverloaded(self: *Self, adding: usize) Allocator.Error!bool {
             // TODO: f64 is probably the wrong float for the job
             // but I don't know what would be :/
-            const max_load_for_capacity: usize = @intFromFloat(@as(f64, @floatFromInt(self.buckets.len)) * LoadFactor);
+            const capacity: f64 = @floatFromInt(self.buckets.len);
+            const max_load_for_capacity: usize = @intFromFloat(capacity * LoadFactor);
 
             return if (self.len + adding > max_load_for_capacity) {
                 try self.rehash();
@@ -119,6 +130,7 @@ pub fn HashMap(comptime TKey: type, comptime TValue: type) type {
             } else false;
         }
 
+        /// O(n)
         pub fn rehash(self: *Self) Allocator.Error!void {
             const buckets = try alloc(self.allocator, self.buckets.len * 2);
 
@@ -167,9 +179,11 @@ pub fn HashMap(comptime TKey: type, comptime TValue: type) type {
                 }
             }
 
-            // Should not be null here: only happens when all buckets are full
-            // and load factor management on add/set prevents this (touch wood)
-            return if (first_deleted_p) |p| .{ p, hash_value } else null;
+            return
+                if (first_deleted_p) |p| .{ p, hash_value }
+                // Should not be null here: only happens when all buckets are full
+                // and load factor management on add/set prevents this (touch wood)
+                else null;
         }
 
         fn alloc(allocator: Allocator, len: usize) Allocator.Error![]Bucket {
@@ -413,7 +427,7 @@ test "update(value) updates the bucket value when value present" {
     try testing.expectEqual(1, map.len);
 }
 
-test "update(value) return an error when value not present" {
+test "update(value) returns an error when value not present" {
     var map = try testMap(3);
     defer map.deinit();
 
@@ -423,6 +437,49 @@ test "update(value) return an error when value not present" {
         error.KeyNotFound,
         err,
     );
+}
+
+test "set(value) updates the bucket value when value present" {
+    var map = try testMap(3);
+    defer map.deinit();
+
+    try map.add(1, "old");
+
+    try map.set(1, "new");
+
+    try testing.expectEqualSlices(
+        TestMap.Bucket,
+        &[_]TestMap.Bucket { 
+            TestMap.Bucket.empty,
+            TestMap.Bucket { .full = .{ .key = 1, .value = "new", .hash_value = 1 } },
+            TestMap.Bucket.empty,
+        },
+        map.buckets
+    );
+    try testing.expectEqual(1, map.len);
+}
+
+test "set(value) inserts into bucket when value is not present" {
+    var map = try testMap(5);
+    defer map.deinit();
+
+    try map.add(6, "six");
+    try map.add(1, "one");
+
+    try map.set(1, "yup");
+
+    try testing.expectEqualSlices(
+        TestMap.Bucket, 
+        &[_]TestMap.Bucket { 
+            TestMap.Bucket.empty,
+            TestMap.Bucket { .full = .{ .key = 6, .value = "six", .hash_value = 6 } },
+            TestMap.Bucket { .full = .{ .key = 1, .value = "yup", .hash_value = 1 } },
+            TestMap.Bucket.empty,
+            TestMap.Bucket.empty,
+        },
+        map.buckets
+    );
+    try testing.expectEqual(2, map.len);
 }
 
 test "remove(value) marks the bucket as deleted when value present at head bucket" {
