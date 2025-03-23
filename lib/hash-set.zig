@@ -35,7 +35,7 @@ pub fn HashSet(comptime T: type) type {
 
         /// O(1)
         pub fn add(self: *Self, value: T) Allocator.Error!bool {
-            return self.inner.set(value, {});
+            return self.inner.put(value, {});
         }
 
         /// O(1)

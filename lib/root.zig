@@ -23,6 +23,8 @@ test {
     _ = @import("hash-map.zig");
     _ = @import("hash-map.iterator.zig");
 
+    _ = @import("graphs.zig");
+
     _ = @import("tests/list-adt.zig");
 }
 

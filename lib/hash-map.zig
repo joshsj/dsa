@@ -75,7 +75,7 @@ pub fn HashMap(comptime TKey: type, comptime TValue: type) type {
         /// Returns true if key was added, false if updated
         ///
         /// O(1)
-        pub fn set(self: *Self, key: TKey, value: TValue) Allocator.Error!bool {
+        pub fn put(self: *Self, key: TKey, value: TValue) Allocator.Error!bool {
             // TODO: calls nextBucket in update and add but this is easier :shrug:
             return if (self.update(key, value)) false
                 else |_| if (self.add(key, value)) true
@@ -451,13 +451,13 @@ test "update(value) returns an error when value not present" {
     );
 }
 
-test "set(value) updates the bucket value when value present" {
+test "put(value) updates the bucket value when value present" {
     var map = try testMap(3);
     defer map.deinit();
 
     try map.add(1, "old");
 
-    const ret = try map.set(1, "new");
+    const ret = try map.put(1, "new");
 
     try testing.expect(!ret);
     try testing.expectEqualSlices(
@@ -472,13 +472,13 @@ test "set(value) updates the bucket value when value present" {
     try testing.expectEqual(1, map.len);
 }
 
-test "set(value) inserts into bucket when value is not present" {
+test "put(value) inserts into bucket when value is not present" {
     var map = try testMap(5);
     defer map.deinit();
 
     try map.add(6, "six");
 
-    const ret = try map.set(1, "juan");
+    const ret = try map.put(1, "juan");
 
     try testing.expect(ret);
     try testing.expectEqualSlices(
