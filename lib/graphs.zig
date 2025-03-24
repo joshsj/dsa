@@ -23,6 +23,7 @@ fn bfs(comptime T: type, graph: Graph(T), origin: T, needle: T) std.mem.Allocato
     defer seen.deinit();
 
     try q.enqueue(origin);
+    try seen.add(origin);
 
     while (q.deque()) |curr| {
         if (graph.ctx.equal(curr, needle)) {
