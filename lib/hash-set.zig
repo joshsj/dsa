@@ -28,6 +28,16 @@ pub fn HashSet(comptime T: type) type {
                 .inner = try HashMap.initCapacity(allocator, ctx, capacity),
             };
         }
+        pub fn initCapacityLoadFactor(
+            allocator: Allocator,
+            ctx: HashMap.Context,
+            capacity: usize,
+            load_factor: f32
+        ) Allocator.Error!Self {
+            return Self {
+                .inner = try HashMap.initCapacityLoadFactor(allocator, ctx, capacity, load_factor),
+            };
+        }
 
         pub fn deinit(self: *Self) void {
             self.inner.deinit();

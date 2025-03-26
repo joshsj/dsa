@@ -7,7 +7,7 @@ const common = @import("common.zig");
 pub fn HashMap(comptime TKey: type, comptime TValue: type) type {
     return struct {
         const DefaultCapacity = 4; // Picked at random
-        const LoadFactor: f16 = 0.75; // Stolen from the internet
+        const DefaultLoadFactor: f32 = 0.75; // Stolen from the internet
 
         const Self = @This();
         const Iterator = @import("hash-map.iterator.zig").HashMapIterator(TKey, TValue);
@@ -28,6 +28,7 @@ pub fn HashMap(comptime TKey: type, comptime TValue: type) type {
         allocator: Allocator,
         buckets: []Bucket,
         ctx: Context,
+        load_factor: f32 = DefaultLoadFactor,
         len: usize = 0,
 
         pub fn init(allocator: Allocator, ctx: Context) Allocator.Error!Self {
@@ -35,13 +36,16 @@ pub fn HashMap(comptime TKey: type, comptime TValue: type) type {
         }
 
         pub fn initCapacity(allocator: Allocator, ctx: Context, capacity: usize) Allocator.Error!Self {
-            const self = Self {
+            return initCapacityLoadFactor(allocator, ctx, capacity, DefaultLoadFactor);
+        }
+
+        pub fn initCapacityLoadFactor(allocator: Allocator, ctx: Context, capacity: usize, load_factor: f32) Allocator.Error!Self {
+            return Self {
                 .allocator = allocator,
                 .buckets = try alloc(allocator, capacity),
                 .ctx = ctx,
+                .load_factor = load_factor,
             };
-
-            return self;
         }
 
         pub fn deinit(self: *Self) void {
@@ -134,7 +138,7 @@ pub fn HashMap(comptime TKey: type, comptime TValue: type) type {
             // TODO: f64 is probably the wrong float for the job
             // but I don't know what would be :/
             const capacity: f64 = @floatFromInt(self.buckets.len);
-            const max_load_for_capacity: usize = @intFromFloat(capacity * LoadFactor);
+            const max_load_for_capacity: usize = @intFromFloat(capacity * self.load_factor);
 
             return if (self.len + adding > max_load_for_capacity) {
                 try self.rehash();
