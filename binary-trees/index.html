@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<title>Binary Trees :: Data Structures &amp; Algorithms</title>
+
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+	<!-- TODO: sort out base urls? -->
+	<link rel="stylesheet" href="../styles.css" type="text/css"> 
+
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.css"
+		integrity="sha384-zh0CIslj+VczCZtlzBcjt5ppRcsAmDnRem7ESsYwWwg3m/OaJ2l4x7YBZl9Kxxib" crossorigin="anonymous">
+
+	<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.js"
+		integrity="sha384-Rma6DA2IPUwhNxmrB/7S3Tno0YY7sFu9WSYMCuulLhIqYSGZ2gKCJWIqhBWqMQfh" crossorigin="anonymous">
+		</script>
+</head>
+
+<body>
+	<nav>
+		<p><a class="mask" href="..">Home</a></p>
+	</nav>
+
+	<h1>Binary Trees</h1>
+<p>Trees are a form of <a href="../graphs">graph</a> that specifically represent a
+hierarchy.</p>
+<p>The root of a tree is the node with no parent (the one at the top); a leaf is a node
+with no children.</p>
+<p>The height of a tree is count of nodes between the root and the furthest leaf.</p>
+<p>Binary trees contain nodes with 2 children at most: <code>left</code>, and <code>right</code>
+conventionally.</p>
+<p>A binary tree is balanced when any node&#39;s left and right children have the same height.</p>
+<p>A binary tree is complete when the children of all nodes are left-most; i.e.,
+if a node has only one child, it must be <code>left</code>.</p>
+<h2>Complexity</h2>
+<p>Binary trees have an additional time complexity based on their height
+<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>h</mi></mrow><annotation encoding="application/x-tex">h</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal">h</span></span></span></span>.</p>
+<p>Complexities using <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>h</mi></mrow><annotation encoding="application/x-tex">h</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal">h</span></span></span></span> are consistent regardless of how
+balanced the tree is.</p>
+<h2>Traversals</h2>
+<p>Trees can be traversed breath-first, meaning the nodes on each level
+are visited with each step.</p>
+<p>They can also be visited depth-first, meaning that the left or right branch
+is exhausted before the other. There are three visiting orders in this case:</p>
+<ul>
+<li>Pre: self, left, right</li>
+<li>In: left, self, right</li>
+<li>Post: left, right, self</li>
+</ul>
+<p>Using this tree as an example,</p>
+<pre><code>    4
+   / \
+  2   5
+ / \   \
+1   3   7
+</code></pre>
+<p>each traversal algorithm would produce the following sequence:</p>
+<pre><code>pre   = 4 2 1 3 5 7
+in    = 1 2 3 4 5 7
+post  = 1 3 2 7 5 4
+depth = 4 2 5 1 3 6
+</code></pre>
+<p>In either case, these operations are <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="script">O</mi><mo stretchy="false">(</mo><mi>n</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\mathcal{O}(n)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathcal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mclose">)</span></span></span></span> &mdash; as the traversal of any
+data structure should be &mdash; or <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="script">O</mi><mo stretchy="false">(</mo><msup><mn>2</mn><mi>h</mi></msup><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\mathcal{O}(2^h)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.0991em;vertical-align:-0.25em;"></span><span class="mord mathcal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord"><span class="mord">2</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8491em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">h</span></span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span>.</p>
+<h2>Representation</h2>
+<p>The simplest way to represent a binary tree is with <strong>nodes</strong>, each holding a <code>value</code>
+and a reference to the <code>left</code> and <code>right</code> child.</p>
+<p>The more awesome way is using an <strong>array</strong>, static or dynamic.</p>
+<p>Nodes are arranged in breadth order (see above for an example) and the following algorithms
+are used to traverse between nodes:</p>
+<p><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mtext>left</mtext><mo>=</mo><mn>2</mn><mi>i</mi><mo>+</mo><mn>1</mn><mspace linebreak="newline"></mspace><mtext>right</mtext><mo>=</mo><mn>2</mn><mi>i</mi><mo>+</mo><mn>2</mn><mspace linebreak="newline"></mspace><mtext>parent</mtext><mo>=</mo><mfrac><mrow><mi>i</mi><mo>−</mo><mn>1</mn></mrow><mn>2</mn></mfrac></mrow><annotation encoding="application/x-tex">\textnormal{left} = 2i + 1 \ \textnormal{right} = 2i + 2 \
+\textnormal{parent} = \frac{i - 1}{2}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord text"><span class="mord textrm">left</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.7429em;vertical-align:-0.0833em;"></span><span class="mord">2</span><span class="mord mathnormal">i</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">1</span></span><span class="mspace newline"></span><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mord text"><span class="mord textrm">right</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.7429em;vertical-align:-0.0833em;"></span><span class="mord">2</span><span class="mord mathnormal">i</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">2</span></span><span class="mspace newline"></span><span class="base"><span class="strut" style="height:0.8095em;vertical-align:-0.1944em;"></span><span class="mord text"><span class="mord textrm">parent</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:2.0225em;vertical-align:-0.686em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.3365em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">2</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal">i</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.686em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span></span>
+See <a href="../heaps">heaps</a> for one usage of array-based binary trees.</p>
+
+</body>
+

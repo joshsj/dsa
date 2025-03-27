@@ -1,0 +1,114 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+
+html {
+	margin: 0 1.5rem;
+}
+
+* {
+	color: inherit;
+}
+
+body {
+	font-family: Inter, -apple-system, BlinkMacSystemFont, avenir next, avenir,
+		segoe ui, helvetica neue, Cantarell, Ubuntu, roboto, noto, helvetica,
+		arial, sans-serif;
+	/* Slate */
+	color: oklch(0.208 0.042 265.755);
+	background: oklch(0.984 0.003 247.858);
+	line-height: 1.6;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+	text-rendering: optimizeLegibility;
+	max-width: 37rem;
+	margin: 0 auto 2rem;
+}
+
+::selection {
+	background: oklch(0.446 0.043 257.281);
+	color: white;
+}
+
+a {
+	text-underline-offset: 0.1em;
+}
+
+a.mask:not(:hover) {
+	text-decoration: none;
+}
+
+strong {
+	font-weight: 600;
+}
+
+h1, h2, h3, h4 {
+	line-height: 1.1;
+	font-weight: 600;
+}
+
+h1 {
+	font-size: 2.2rem;
+}
+
+h2 {
+	font-size: 1.7rem;
+}
+
+h3 {
+	font-size: 1.3rem;
+}
+
+article {
+	border-top: 0.15rem dashed #ccc;
+}
+
+ul, ol {
+	list-style-position: inside;
+	padding: 0;
+	margin-inline: 0;
+}
+
+ul {
+	list-style-type: "- ";
+}
+
+table {
+	border-spacing: 0.5rem 0;
+	margin-inline: -0.5rem;
+}
+
+th {
+	text-align: left;
+}
+
+pre {
+	overflow-x: auto;
+}
+
+figure {
+	margin: 0;
+}
+
+pre:has(> code), .katex-display, figure {
+	padding: 0.5rem 1rem;
+	border: 0.1rem solid currentColor;
+}
+
+pre:has(> code), code, .katex-display, figure {
+	background: white;
+	border-radius: 0.25rem;
+}
+
+.katex .katex-html > .newline {
+	margin-top: 0.5em;
+}
+
+dt, dfn {
+	font-style: italic;
+}
+
+aside {
+	font-size: 0.9em;
+	padding-left: 1em;
+	border-left: 0.2rem solid oklch(0.869 0.022 252.894);
+}
+

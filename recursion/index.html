@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<title>Recursion :: Data Structures &amp; Algorithms</title>
+
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+	<!-- TODO: sort out base urls? -->
+	<link rel="stylesheet" href="../styles.css" type="text/css"> 
+
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.css"
+		integrity="sha384-zh0CIslj+VczCZtlzBcjt5ppRcsAmDnRem7ESsYwWwg3m/OaJ2l4x7YBZl9Kxxib" crossorigin="anonymous">
+
+	<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.js"
+		integrity="sha384-Rma6DA2IPUwhNxmrB/7S3Tno0YY7sFu9WSYMCuulLhIqYSGZ2gKCJWIqhBWqMQfh" crossorigin="anonymous">
+		</script>
+</head>
+
+<body>
+	<nav>
+		<p><a class="mask" href="..">Home</a></p>
+	</nav>
+
+	<h1>Recursion</h1>
+<dl><dt title="">Recursion</dt><dd>A process which depends on a simpler or previous version of itself.</dd></dl>
+
+
+<p>Recursion is one tool in the DSA belt to implement algorithms effectively.</p>
+<p>In its formal definition, a algorithm is recursive when it has the two
+following properties:</p>
+<ol>
+<li>A base case (or cases): a terminating scenario that does not use recursion
+to produce an answer.</li>
+<li>A recursive step: logic which works towards the base case and ultimately
+recurs.</li>
+</ol>
+<h2>Comparison to Iteration</h2>
+<p>Who wins?</p>
+<h3>Performance</h3>
+<p>Performance is not a benefit.</p>
+<p>Recursive implementations of an algorithm <em>can</em> be as performant as an
+iterative implementation but the need to create a new stack frame for each
+recursive step adds overhead.</p>
+<aside>
+
+
+
+<p>See <a href="https://en.wikipedia.org/wiki/Tail_call#:~:text=sequence%20is%20called-,tail%2Dcall%20elimination,-or%20tail%2Dcall">tail call
+elimination</a>
+for how this performance can be reclaimed.</p>
+</aside>
+
+<p>Note that recursion vs. iteration only applies to the implementation of an
+algorithm and therefore does not affect its Big O.</p>
+<h3>Safety</h3>
+<p>Where iteration has infinite loops, recursion has call stack errors.</p>
+<p>Both are bad for their own reasons, just write better code.</p>
+<h3>Simplicity</h3>
+<p>Many algorithms are more simple to express recursively instead of iteratively
+&mdash; so the clarity better outweigh the performance hit.</p>
+<p>Take an implementation of quicksort (excluding the <code>partition</code> function):</p>
+<pre><code class="language-zig">pub fn quick(comptime T: type, compare: *const Compare(T), items: []T) void {
+    if (items.len &lt;= 1) {
+        return;
+    }
+
+    const pivot_idx = partition(T, compare, items).?;
+
+    quick(T, compare, items[0..pivot_idx]);
+    quick(T, compare, items[pivot_idx + 1..items.len]);
+}
+</code></pre>
+<p>Converting the implementation to be iterative would require:</p>
+<ul>
+<li>2 loops, one for each recursive step</li>
+<li>2 variables to store the current window over <code>items</code> (probably <code>left</code> and
+<code>right</code>)</li>
+<li>An outer loop</li>
+<li>Some conditions to terminate the algorithm &mdash; either in the loop
+condition or using <code>if</code> + <code>break</code></li>
+</ul>
+<h2>Thinking recursively</h2>
+<p>When using recursion, the recursive step can be <strong>broken down into three
+sub-steps</strong>:</p>
+<ul>
+<li>Pre: what happens before recurring</li>
+<li>Recurse: self-explanatory</li>
+<li>Post: what happens after recurring</li>
+</ul>
+<p>Pathing algorithms are a good example of this.</p>
+<p>Recursive functions also generally <strong>accept invalid values</strong>, as opposed to
+validating them before the recursive call. This is a better approach because:</p>
+<ol>
+<li>it allows the recurive to handle the invalid values as part of its base
+case and</li>
+<li>the recurse step is simplified.</li>
+</ol>
+<p>Most algorithms on node-based data structures follow this pattern:</p>
+<pre><code class="language-ts">// left and right are optional
+type N = { value: number, left?: N, right?: N };
+
+// haystack is optional
+function find(needle: number, haystack: N | undefined): N | undefined {
+    // base case handles the optionality
+    if (!haystack) {
+        return undefined;
+    }
+
+    if (needle &lt; haystack.value) {
+        // pass left, delegate undefined check to base case
+        return find(needle, haystack.left);
+    }
+
+    if (needle &gt; haystack.value) {
+        // same again
+        return find(needle, haystack.right);
+    }
+
+    return haystack;
+}
+</code></pre>
+<p>By consequence, recursive functions may have <strong>private and public
+equivalents</strong>, where the public function does not have parameters for the
+potentially-invalid values. This keeps the public interface clean and the
+responsibility of providing the inital value an implementation detail.</p>
+
+</body>
+
