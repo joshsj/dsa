@@ -8,6 +8,7 @@ const common = @import("common.zig");
 
 const HashMap = @import("hash-map.zig").HashMap;
 const HashSet = @import("hash-set.zig").HashSet;
+const Heap = @import("heap.zig").Heap;
 const Queue = @import("queue.zig").Queue;
 
 fn Graph(comptime T: type) type { return HashMap(T, []T); }
@@ -192,3 +193,93 @@ test dijkstra_no_heap {
     try testing.expectEqual(6, dists.get(4));
 }
 
+fn dijkstra_heap(comptime T: type, graph: WeightedGraph(T), dists: *HashMap(T, Weight), origin: T) !void {
+    {
+        var iter = graph.iter();
+
+        while (try iter.next()) |pair| {
+            dists.add(pair.key, Inf) orelse unreachable;
+        }
+
+        dists.update(origin, 0) orelse unreachable;
+    }
+
+    var visited = try HashSet(T).initCapacityLoadFactor(graph.allocator, graph.ctx, graph.len, 1);
+    defer visited.deinit();
+
+    var todo = try Heap(Weight, T).init(graph.allocator, .min);
+    defer todo.deinit();
+
+    todo.add(0, origin);
+
+    while (todo.remove()) |curr| {
+        if (!try visited.add(curr.value)) continue;
+
+        const adjs = graph.get(curr.value).?;
+
+        for (adjs) |edge| {
+            if (visited.has(edge.to)) continue;
+
+            const dist = dists.get(curr.value).? + edge.weight;
+
+            if (dist < dists.get(edge.to).?) {
+                dists.update(edge.to, dist) catch unreachable;
+                todo.add(dist, edge.to);
+            }
+        }
+    }
+}
+
+test dijkstra_heap {
+    const ctx = Graph(u8).Context { 
+        .equal = common.defaultEqual(u8),
+        .hash = common.coerced(u8, usize),
+    };
+
+    var graph = try WeightedGraph(u8).init(testing.allocator, ctx);
+    defer graph.deinit();
+    
+    {
+        var arr = [_]WeightedEdge(u8) {
+            .{ .to = 1, .weight = 1, },
+            .{ .to = 2, .weight = 5, },
+        };
+        try graph.add(0, &arr);
+    }
+
+    {
+        var arr = [_]WeightedEdge(u8) {
+            .{ .to = 2, .weight = 7, },
+            .{ .to = 3, .weight = 3, },
+        };
+        try graph.add(1, &arr);
+    }
+
+    {
+        var arr = [_]WeightedEdge(u8) {
+            .{ .to = 4, .weight = 1, },
+        };
+        try graph.add(2, &arr);
+    }
+
+    {
+        var arr = [_]WeightedEdge(u8) {
+            .{ .to = 1, .weight = 1, },
+            .{ .to = 2, .weight = 2, },
+        };
+        try graph.add(3, &arr);
+    }
+
+    { try graph.add(4, &[0]WeightedEdge(u8) {}); }
+
+    var dists = try HashMap(u8, Weight).initCapacityLoadFactor(graph.allocator, graph.ctx, graph.len, 1);
+    defer dists.deinit();
+
+    try dijkstra_heap(u8, graph, &dists, 0);
+
+    try testing.expectEqual(0, dists.get(0));
+    try testing.expectEqual(1, dists.get(1));
+    try testing.expectEqual(5, dists.get(2));
+    try testing.expectEqual(4, dists.get(3));
+    try testing.expectEqual(6, dists.get(4));
+}
